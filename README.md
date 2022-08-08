@@ -1,8 +1,5 @@
 # synthesis
 
-#
-# sdf
+## MNIST
 
-#
-#
-# sdlkfjlskdg
+## Pima
