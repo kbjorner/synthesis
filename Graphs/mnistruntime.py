@@ -23,7 +23,7 @@ def createFile(file):
         f.close()
 
         start_time = time.time()
-        os.system('cvc4 --lang=sygus2 mnist{}.smt2'.format(i))
+        os.system('../../../cvc5/build/bin/cvc5 --lang=sygus2 mnist{}.smt2'.format(i))
 
         # instead of printing, put on graph
         runTime = time.time() - start_time
