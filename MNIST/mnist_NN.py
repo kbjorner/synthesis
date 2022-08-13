@@ -6,6 +6,11 @@ import math
 from collections import Counter
 
 
+"""
+Class to train and evaluate MNIST dataset. Saves model.
+"""
+
+
 class TrainingInstance:
     def __init__(self, num_classes, input_shape):
         self.num_classes = num_classes
@@ -142,7 +147,7 @@ def main():
     epochs = 1 # Normally 15
     # T.train_model(batch_size=batch_size, epochs=epochs)
     T.load_model("my_model_2022-08-13T19:55:30.h5")
-    T.evaluate_model()
+    # T.evaluate_model()
     T.simple_evaluation()
 
 
