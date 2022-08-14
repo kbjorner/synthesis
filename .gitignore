@@ -1,0 +1,5 @@
+*.ipynb_checkpoints/*
+pima.smt2
+mnist.smt2
+mimic.smt2
+*.ipynb
