@@ -1,0 +1,71 @@
+\documentclass{article}
+\usepackage[x11names, svgnames, rgb]{xcolor}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary{snakes,arrows,shapes}
+\usepackage{amsmath}
+%
+%
+
+\usepackage[active,tightpage]{preview}
+\PreviewEnvironment{tikzpicture}
+\setlength\PreviewBorder{0pt}%
+
+%
+
+\begin{document}
+\pagestyle{empty}
+%
+%
+%
+
+\enlargethispage{100cm}
+% Start of code
+\begin{tikzpicture}[>=latex',line join=bevel,]
+%%
+\node (0) at (725.0bp,450.0bp) [draw,ellipse] {(5, 15) <= (19, 11)};
+  \node (1) at (642.0bp,378.0bp) [draw,ellipse] {(5, 13) <= (6, 14)};
+  \node (16) at (808.0bp,378.0bp) [draw,ellipse] {(6, 15) <= (18, 11)};
+  \node (2) at (472.0bp,306.0bp) [draw,ellipse] {(5, 17) <= (24, 11)};
+  \node (15) at (642.0bp,306.0bp) [draw,ellipse] {(5, 12) <= (19, 11)};
+  \node (3) at (387.0bp,234.0bp) [draw,ellipse] {(6, 15) <= (11, 17)};
+  \node (12) at (557.0bp,234.0bp) [draw,ellipse] {(5, 15) <= (20, 12)};
+  \node (4) at (222.0bp,162.0bp) [draw,ellipse] {(6, 18) <= (7, 16)};
+  \node (9) at (388.0bp,162.0bp) [draw,ellipse] {(6, 15) <= (12, 14)};
+  \node (5) at (67.0bp,90.0bp) [draw,ellipse] {(4, 10) <= (4, 8)};
+  \node (6) at (224.0bp,90.0bp) [draw,ellipse] {(6, 18) <= (7, 22)};
+  \node (7) at (144.0bp,18.0bp) [draw,ellipse] {(6, 18) <= (6, 17)};
+  \node (8) at (305.0bp,18.0bp) [draw,ellipse] {(6, 11) <= (8, 16)};
+  \node (10) at (387.0bp,90.0bp) [draw,ellipse] {(6, 15) <= (11, 9)};
+  \node (11) at (548.0bp,90.0bp) [draw,ellipse] {(6, 10) <= (8, 16)};
+  \node (13) at (556.0bp,162.0bp) [draw,ellipse] {(6, 18) <= (7, 22)};
+  \node (14) at (717.0bp,162.0bp) [draw,ellipse] {(6, 11) <= (6, 10)};
+  \node (17) at (808.0bp,306.0bp) [draw,ellipse] {(6, 11) <= (8, 16)};
+  \node (18) at (974.0bp,306.0bp) [draw,ellipse] {(5, 15) <= (14, 11)};
+  \draw [->] (0) ..controls (694.13bp,422.97bp) and (681.41bp,412.24bp)  .. (1);
+  \draw [->] (0) ..controls (755.87bp,422.97bp) and (768.59bp,412.24bp)  .. (16);
+  \draw [->] (1) ..controls (576.97bp,350.22bp) and (547.5bp,338.09bp)  .. (2);
+  \draw [->] (1) ..controls (642.0bp,351.98bp) and (642.0bp,342.71bp)  .. (15);
+  \draw [->] (2) ..controls (440.28bp,278.88bp) and (427.11bp,268.03bp)  .. (3);
+  \draw [->] (2) ..controls (503.72bp,278.88bp) and (516.89bp,268.03bp)  .. (12);
+  \draw [->] (3) ..controls (323.98bp,206.26bp) and (295.53bp,194.19bp)  .. (4);
+  \draw [->] (3) ..controls (387.36bp,207.98bp) and (387.49bp,198.71bp)  .. (9);
+  \draw [->] (4) ..controls (162.99bp,134.35bp) and (136.54bp,122.41bp)  .. (5);
+  \draw [->] (4) ..controls (222.71bp,135.98bp) and (222.98bp,126.71bp)  .. (6);
+  \draw [->] (6) ..controls (194.25bp,62.965bp) and (181.99bp,52.24bp)  .. (7);
+  \draw [->] (6) ..controls (254.13bp,62.965bp) and (266.54bp,52.24bp)  .. (8);
+  \draw [->] (9) ..controls (387.64bp,135.98bp) and (387.51bp,126.71bp)  .. (10);
+  \draw [->] (9) ..controls (449.01bp,134.31bp) and (476.46bp,122.3bp)  .. (11);
+  \draw [->] (12) ..controls (556.64bp,207.98bp) and (556.51bp,198.71bp)  .. (13);
+  \draw [->] (12) ..controls (618.01bp,206.31bp) and (645.46bp,194.3bp)  .. (14);
+  \draw [->] (16) ..controls (808.0bp,351.98bp) and (808.0bp,342.71bp)  .. (17);
+  \draw [->] (16) ..controls (871.4bp,350.26bp) and (900.03bp,338.19bp)  .. (18);
+%
+\end{tikzpicture}
+% End of code
+
+%
+\end{document}
+%
+
+

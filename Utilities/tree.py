@@ -1,4 +1,5 @@
 import graphviz
+import dot2tex
 
 class Tree:
     def __init__(self, *args):
@@ -43,4 +44,7 @@ def format_label(label):
 tree = Tree("<= b5_15 b19_11", Tree("<= b5_13 b6_14", Tree("<= b5_17 b24_11", Tree("<= b6_15 b11_17", Tree("<= b6_18 b7_16", Tree("<= b4_10 b4_8"), Tree("<= b6_18 b7_22", Tree("<= b6_18 b6_17"), Tree("<= b6_11 b8_16"))), Tree("<= b6_15 b12_14", Tree("<= b6_15 b11_9"), Tree("<= b6_10 b8_16"))), Tree("<= b5_15 b20_12", Tree("<= b6_18 b7_22"), Tree("<= b6_11 b6_10"))), Tree("<= b5_12 b19_11")), Tree("<= b6_15 b18_11", Tree("<= b6_11 b8_16"), Tree("<= b5_15 b14_11")))
 
 with open("tree.dot", "w") as f:
-    f.write(tree.graph(format_label))
+    dotstr = tree.graph(format_label)
+    texcode = dot2tex.dot2tex(dotstr, format='tikz', crop=True )
+    # f.write(tree.graph(format_label))
+    f.write(texcode)
