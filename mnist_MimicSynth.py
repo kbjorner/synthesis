@@ -40,14 +40,15 @@ def run_benchmark(n, iterate, runtime_data):
             timeRun = createFile(arr_constraints)
             runtime_data.loc[i,num_constraints] = timeRun
     
-    runtime_data.to_csv('mnist_runtime.csv')
+    # runtime_data.to_csv('mnist_runtime.csv')
 
 
 
 
 def main():
     n = 10
-    iterate = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+    # iterate = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+    iterate = [10]
     runtime_data = pd.DataFrame(columns=iterate, index=range(1,n+1))
     run_benchmark(n, iterate, runtime_data)
     # arr_constraints = [] # size i in iterate

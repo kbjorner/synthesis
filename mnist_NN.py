@@ -19,7 +19,7 @@ class TrainingInstance:
         # the data, split between train and test sets
         (self.x_train, self.y_train), (self.x_test, self.y_test) = keras.datasets.mnist.load_data()
         self.timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-        self.save_model = f"my_model_{self.timestamp}.h5"
+        self.save_model = f"mnist_model_{self.timestamp}.h5"
 
     def display_digit(self, img):
         for row in img:
@@ -166,10 +166,10 @@ def main():
     T.build_model()
     print(T.model.summary())
 
-    batch_size = 4 # Normally 128
-    epochs = 1 # Normally 15
-    # T.train_model(batch_size=batch_size, epochs=epochs)
-    T.load_model("my_model_2022-08-13T19:55:30.h5")
+    batch_size = 128 # Normally 128
+    epochs = 15 # Normally 15
+    T.train_model(batch_size=batch_size, epochs=epochs)
+    # T.load_model('models/mnist_model.h5')
     T.evaluate_model()
     T.simple_evaluation()
     T.make_constraints(f'mnist_constraints_{T.timestamp }.txt')
