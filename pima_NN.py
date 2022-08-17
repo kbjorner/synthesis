@@ -87,7 +87,6 @@ class TrainingInstance:
 
     def make_constraints(self):
         f = open("smtfiles/pima_constraints.txt", "w")
-        n = 100
         oneCounter = 0
         zeroCounter = 0
         

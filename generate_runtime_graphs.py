@@ -55,6 +55,8 @@ def make_graph(df1, df2, benchmark, plotcolor, fillcolor):
     rc('font', **{'family': 'serif', 'serif': ['Times']})
     rc('text', usetex=True)
 
+    fig, ax = plt.subplots()
+
     plt.fill_between(iterate, lowerbound, upperbound, color = fillcolor)
     plt.plot(iterate, means, color = plotcolor, marker = 'o', markersize=4)
     if benchmark == "Pima":
@@ -64,9 +66,12 @@ def make_graph(df1, df2, benchmark, plotcolor, fillcolor):
         plt.legend(['Mean Boostrap', 'Mean Simple', 'Mean $\pm$ stdev','Mean $\pm$ stdev'])
     else:
         plt.legend(['Mean', 'Mean $\pm$ stdev'])
-    plt.xlabel('Number of Constraints', size = fontsize)
+
+    for spine in ['right', 'top']:
+        ax.spines[spine].set_visible(False)
+    plt.xlabel('Number of Examples', size = fontsize)
     plt.ylabel('Runtime (seconds)', size=fontsize)
-    plt.title(f'Mimic Program Synthesis on {benchmark}', size = fontsize + 2)
+    # plt.title(f'Mimic Program Synthesis on {benchmark}', size = fontsize + 2)
     
     yspaced = np.linspace(0,maxtime,5)
     ysize = 1000
@@ -78,9 +83,14 @@ def make_graph(df1, df2, benchmark, plotcolor, fillcolor):
     xnums = iterate[::2]
     xstrs = [str(xnums[i]) for i in range(len(xnums))]
     plt.xticks(xnums, xstrs)
+    if benchmark == "MNIST":
+        ax.set_aspect(aspect=0.75)
     # plt.margins(x = 0)
     plt.savefig(f'{benchmark}_runtime.pdf', bbox_inches='tight')
     # plt.show()
+
+def make_pima_global_accuracy_graph():
+    data = pd.read_csv('data/pima_global_accuracy.csv')
 
 def main():
     argparser = argparse.ArgumentParser(description=__doc__)
@@ -100,6 +110,8 @@ def main():
     df1 = pd.read_csv('data/pima_runtime_bootstrap.csv', usecols=[i for i in range(1,maxcol)])
     df2 = pd.read_csv('data/pima_runtime_simple.csv', usecols=[i for i in range(1,maxcol)])
     make_graph(df1, df2, "Pima", plotcolor,fillcolor)
+
+
 
 
 if __name__ == "__main__":

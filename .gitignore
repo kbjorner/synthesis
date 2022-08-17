@@ -3,3 +3,8 @@ pima.smt2
 mnist.smt2
 mimic.smt2
 *.ipynb
+synth_runtime_anal.csv
+__pycache__/*
+smtfiles/temp_mnist.smt2
+smtfiles/temp_pima.smt2
+smtfiles/pima_mimic_50examples.smt2

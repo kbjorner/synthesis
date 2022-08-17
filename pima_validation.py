@@ -1,3 +1,4 @@
+from functools import total_ordering
 import time, os, hy
 import numpy as np, pandas as pd
 import random, pickle
@@ -105,7 +106,10 @@ def clean_mimic_program(mimic_smtfile):
             let_values.append(get_first_correct_parenthesis(raw[startind:]))
             variables += 1
             found =True
-    last_portion = raw[raw.find(let_values[-1])+len(let_values[-1]):]
+    if len(let_values) > 0:
+        last_portion = raw[raw.find(let_values[-1])+len(let_values[-1]):]
+    else:
+        last_portion = raw
     for i in range(len(let_values)):
         for j in range(len(let_values)):
             let_values[j] = let_values[j].replace(f"_let_{i+1} ",f"{let_values[i]} ")
@@ -161,6 +165,7 @@ def createFile(constraints_ind, tempfile):
     # print(constraints)
     f = open(tempfile, 'w')
     # have this in a file to read from
+    # h = open("smtfiles/pima_grammar_quantiles.txt", "r")
     h = open("smtfiles/pima_grammar.txt", "r")
     for line in h:
         f.write(line)
@@ -195,14 +200,23 @@ def run_benchmark(n, iterate, runtime_data):
 def mimic_program_global_accuracy(T):
     xtotest = T.test_xs.reset_index(drop=True)
     ytotest = T.test_ys.reset_index(drop=True)
-    right_predictions = 0
-    for i in xtotest.index:
-        values = list(xtotest.loc[i,:])
+
+    total_predictions = 0
+    right_predictions_acc = 0
+    right_predictions_rec = 0
+    buffer = min(T.test_xs.index)
+    for i in T.outcomes_df.index:
+        values = list(T.test_xs.loc[i+buffer,:])
         program_outcome = classify_patient(values)
-        ground_truth = ytotest.loc[i,'Outcome'] > 0.5
+        ground_truth = T.test_ys.loc[i+buffer, 'Outcome'] > 0.5
+        model_outcome = T.outcomes_df.loc[i,'prediction']
         if program_outcome == ground_truth:
-            right_predictions += 1
-    return right_predictions/xtotest.shape[0]
+            right_predictions_acc += 1
+        if program_outcome == model_outcome:
+            right_predictions_rec += 1
+        total_predictions += 1
+
+    return right_predictions_acc/total_predictions, right_predictions_rec/total_predictions 
 
     
 
@@ -230,14 +244,19 @@ def main():
     T.data_preparation()
     with open('models/pima_model.pkl', 'br') as fp:
         T.model = pickle.load(fp)
+    T.make_constraints()
     constraints = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140]
     global_accuracy = pd.DataFrame(columns=constraints)
+    global_recall = pd.DataFrame(columns=constraints)
     for num_constraints in tqdm(constraints):
         tempfile = 'smtfiles/temp_pima.smt2'
         createFile(list(range(num_constraints)), tempfile)
         clean_mimic_program('pima_mimic.smt2')
-        global_accuracy.loc[0,num_constraints] = mimic_program_global_accuracy(T)
-        global_accuracy.to_csv('data/pima_global_accuracy.csv')
+        acc, rec = mimic_program_global_accuracy(T)
+        global_accuracy.loc[0,num_constraints] = acc
+        global_recall.loc[0,num_constraints] = rec
+        global_accuracy.to_csv('data/pima_global_accuracy_quantiles.csv')
+        global_recall.to_csv('data/pima_global_recall_quantiles.csv')
     
     # for some reason, keras load model doenst' work
     
