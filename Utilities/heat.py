@@ -19,7 +19,7 @@ def draw_border(img, draw):
 
 for pix in matches:
     pix = [int(coord) for coord in pix]
-    draw_pixel(draw, (pix[0], pix[1]), 20)
+    draw_pixel(draw, (pix[1], pix[0]), 20)
 
 #draw_border(img, draw)
 
