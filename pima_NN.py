@@ -30,7 +30,7 @@ class TrainingInstance:
             'Outcome' 
         ]
 
-        self.data = pd.read_csv('data/diabetes.csv', names= self.features)
+        self.data = pd.read_csv('data/pima_indians_diabetes.csv', names= self.features)
         # (self.x_train, self.y_train), (self.x_test, self.y_test) = keras.datasets.mnist.load_data()
         self.timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
         self.save_model = f"models/pima_model_{self.timestamp}.h5"
