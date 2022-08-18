@@ -36,13 +36,13 @@ used to run the accuracy and recall experiments.
     - *pima_grammar_quantiles.smt2*:
 - **Utilities/**: Miscelaneous utils for visualization.
 
-- **generate_runtime_graphs.py**. This script reads data in the `data/` folder and generates all the graphs shown in the paper.
+- **generate_runtime_graphs.py**. Reads data in the `data/` folder and generates all the graphs shown in the paper.
 - **mnist_NN.py**: Trains the Neural Network (opaque model) for the MNIST benchmark.
 - **mnist_runtime.py**: Makes runtime experiments for MNIST.
-- **mnist_validation.py**: ...
+- **mnist_validation.py**: Accuracy and recall experiments for the MNIST benchmark.
 - **pima_NN.py**: Trains the Neural Network (opaque model) for the Pima benchmark.
 - **pima_runtime.py**: Makes runtime experiments for Pima.
-- **pima_validation.py**: ...
+- **pima_validation.py**: Accuracy and recall experiments for the Pima benchmark.
 - **README.md**: This ReadMe.
 
 

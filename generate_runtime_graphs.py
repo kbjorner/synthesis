@@ -1,5 +1,4 @@
-from pickletools import markobject
-import time, os, argparse, random
+import argparse, random, csv
 import numpy as np 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -86,11 +85,158 @@ def make_graph(df1, df2, benchmark, plotcolor, fillcolor):
     if benchmark == "MNIST":
         ax.set_aspect(aspect=0.75)
     # plt.margins(x = 0)
-    plt.savefig(f'{benchmark}_runtime.pdf', bbox_inches='tight')
+    plt.savefig(f'images/{benchmark}_runtime.pdf', bbox_inches='tight')
     # plt.show()
 
 def make_pima_global_accuracy_graph():
-    data = pd.read_csv('data/pima_global_accuracy.csv')
+    accuracy = pd.read_csv('data/pima_global_accuracy.csv')
+    head = accuracy.columns[1:]
+    rows = [list(accuracy.loc[0,head].astype(str))]
+
+    recall = pd.read_csv('data/pima_global_recall.csv')
+    head2 = recall.columns[1:]
+    rows2 = [list(recall.loc[0,head2].astype(str))]
+    plotcolor = '#DC3220'
+    horizcolor = '#FF6600'
+
+    # hliney = '' # enter path to this value, replace line below with this.
+    hliney = 0.78
+
+#     define vars
+    x = []
+    y = []
+    z = []
+    for n in head:
+        x.append(int(n))
+    for accur in rows[0]:
+        y.append(float(accur))
+    for rec in rows2[0]:
+        z.append(float(rec))
+    print(x, '\n')
+    print(y, '\n')
+    print(z, '\n')
+    
+    fig, ax = plt.subplots()
+    plt.margins(x = 0)
+    plt.plot(x, y, color = plotcolor, marker = 'o', markersize=4)
+    plt.plot(x,z,color = '#008080', marker = 'o', markersize=4)
+    plt.axhline(hliney, color = horizcolor, linestyle = '--')
+#     plt.plot(1, 0, ">k", transform=ax.get_yaxis_transform(), clip_on=False)
+    
+    for spine in ['right', 'top']:
+        ax.spines[spine].set_visible(False)
+    
+    plt.legend(['Mimic Program Accuracy', 'Mimic Program Recall', 'Opaque Model Accuracy'])
+#     plt.title('Comparative Pima Accuracy: Opaque Model vs. Mimic Program')
+    plt.xlabel('Number of Examples')
+    plt.ylabel('Accuracy (\%)')
+    plt.xticks([8, 30, 50, 70, 90, 110, 130], ['10', '30', '50', '70', '90', '110', '130'])
+    plt.yticks([0.0, 0.5, 1.0],['0', '50', '100']) # can be commented out to remov whtie space? if desired
+    
+    plt.savefig('images/pima_accuracy_vs_recall.pdf', bbox_inches='tight')
+    # plt.show()
+
+
+
+def readCSVfile_mnist_accuracy(csvfile):
+    head = []
+    rows = []
+    means = []
+    lowbound = []
+    upbound = []
+    
+    file = open(csvfile)
+    readcsv = csv.reader(file)
+    df = pd.read_csv(csvfile)
+
+    
+    head = next(readcsv)
+    head.pop(0)
+
+    for i, line in enumerate(readcsv):
+        rows.append(line)
+        rows[i].pop(0)
+    rows
+
+    file.close()
+    
+    for col in head:
+        data = 100*df[col]
+        mean = data.mean()
+        means.append(mean)
+        
+        stddev = data.std()
+        lowbound.append(mean - stddev)
+        upbound.append(mean + stddev)
+#     print(f"means: {means}; upperbound: {upperbound}")
+    return df, head, rows, means, lowbound, upbound
+
+
+def mnist_accuracy_plot():
+    
+    plotcolor = '#DC3220'
+    fillbetweencolor = '#DC9F9F'
+    horizcolor = '#FF6600'
+
+    # hliney = '' # enter path to this value, replace line below with this.
+    hliney = 99
+    df1, head1, rows1, means1, lowbound1, upbound1 = readCSVfile_mnist_accuracy('data/mnist_global_accuracy.csv')
+    df2, head2, rows2, means2, lowbound2, upbound2 = readCSVfile_mnist_accuracy('data/mnist_global_recall.csv')
+#     define vars
+    x = []
+    for n in head1:
+        x.append(int(n))
+
+    fig, (ax, ax2) = plt.subplots(2, 1, sharex=True)
+    
+    
+    
+    ax.fill_between(x, lowbound1, upbound1, color = fillbetweencolor, alpha = 0.7)
+    ax.plot(x, means1, color = plotcolor, marker = 'o', markersize=4)
+    ax.fill_between(x, lowbound2, upbound2, color = '#009F9F', alpha = 0.3)
+    ax.plot(x, means2, color = '#008080', marker = 'o', markersize=4)
+    ax.axhline(hliney, color = horizcolor, linestyle = '--')
+    
+    ax2.fill_between(x, lowbound1, upbound1, color = fillbetweencolor, alpha = 0.6)
+    ax2.plot(x, means1, color = plotcolor, marker = 'o', markersize=4)
+    ax2.fill_between(x, lowbound2, upbound2, color = '#009F9F', alpha = 0.4)
+    ax2.plot(x, means2, color = '#008080', marker = 'o', markersize=4)
+    ax2.axhline(hliney, color = horizcolor, linestyle = '--')
+    
+    ax.set_ylim(90, 100)
+    ax2.set_ylim(50,60)
+    
+    ax.spines['bottom'].set_visible(False)
+    ax2.spines['top'].set_visible(False)
+#     ax.xaxis.tick_top()
+    ax.axes.xaxis.set_visible(False)
+    ax.tick_params(labeltop=False)  # don't put tick labels at the top
+    ax2.xaxis.tick_bottom()
+    
+    d = .015  # how big to make the diagonal lines in axes coordinates
+    # arguments to pass to plot, just so we don't keep repeating them
+    kwargs = dict(transform=ax.transAxes, color='k', clip_on=False)
+    ax.plot((-d, +d), (-d, +d), **kwargs)        # top-left diagonal
+#     ax.plot((1 - d, 1 + d), (-d, +d), **kwargs)  # top-right diagonal
+
+    kwargs.update(transform=ax2.transAxes)  # switch to the bottom axes
+    ax2.plot((-d, +d), (1 - d, 1 + d), **kwargs)  # bottom-left diagonal
+#     ax2.plot((1 - d, 1 + d), (1 - d, 1 + d), **kwargs)  # bottom-right diagonal
+    
+    
+    
+    for spine in ['right', 'top']:
+        ax.spines[spine].set_visible(False)
+        ax2.spines[spine].set_visible(False)
+    
+    fig.legend(['Mimic Program Accuracy','Mimic Program Recall', 'Opaque Model Accuracy'], loc=[0.4,0.6])
+#     plt.title('Comparative MNIST Accuracy: Opaque Model vs. Mimic Program')
+    plt.xlabel('Number of Examples')
+    plt.ylabel('Accuracy (\%)')
+#     plt.yticks([0.0, 0.5, 1.0],['', '0.5', '1.0']) # can be commented out to remov whtie space? if desired
+    
+    plt.savefig('images/mnist_accuracy_vs_recall.pdf')
+    # plt.show()
 
 def main():
     argparser = argparse.ArgumentParser(description=__doc__)
@@ -100,10 +246,10 @@ def main():
     plotcolor = '#DC3220'
     fillcolor = '#DC9F9F'
 
-    paths_to_data = ['mnist.csv', 'pima.csv']
     df = make_random_dataset()
     maxcol = pd.read_csv('data/mnist_runtime.csv').shape[1]
     df = pd.read_csv('data/mnist_runtime.csv', usecols=[i for i in range(1,maxcol)])    
+    print(df)
     make_graph(df,df, "MNIST", plotcolor=plotcolor, fillcolor=fillcolor)
     plt.clf()
     maxcol = pd.read_csv('data/pima_runtime_bootstrap.csv').shape[1]
@@ -111,6 +257,10 @@ def main():
     df2 = pd.read_csv('data/pima_runtime_simple.csv', usecols=[i for i in range(1,maxcol)])
     make_graph(df1, df2, "Pima", plotcolor,fillcolor)
 
+    mnist_accuracy_plot()
+    plt.clf()
+
+    make_pima_global_accuracy_graph()
 
 
 
