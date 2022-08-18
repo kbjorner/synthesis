@@ -209,7 +209,7 @@ def mimic_program_global_accuracy(T):
 
     for i in tqdm(range(xtotest.shape[0])):
         ground_truth = ytotest[i]
-        if ground_truth == 7 or ground_truth == 7:
+        if ground_truth == 7 or ground_truth == 1:
             total_predictions += 1
             program_outcome = classify_image(list(xtotest[i]))
             prediction = np.argmax(model_outcome[i])
@@ -261,8 +261,8 @@ def main():
     # with open('models/mnist_model.pkl', 'br') as fp:
     #     T.model = pickle.load(fp)
     T.load_model('models/mnist_model.h5')
-    # constraints = [10, 20, 30, 40, 50, 60, 70, 80]
-    constraints = [60]
+    constraints = [10, 20, 30, 40, 50, 60, 70, 80]
+    # constraints = [60]
 
     global_accuracy = pd.DataFrame(columns=constraints)
     global_recall = pd.DataFrame(columns=constraints)
