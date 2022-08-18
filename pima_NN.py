@@ -4,7 +4,7 @@ import pandas as pd
 from tensorflow import keras
 import tensorflow as tf
 from datetime import datetime
-import math
+import os
 from collections import Counter
 from sklearn import tree
 import graphviz, pickle
@@ -74,9 +74,9 @@ class TrainingInstance:
     def train_model(self):
         self.model.compile( loss = tf.losses.MeanSquaredError(), optimizer = "adam", metrics=[ tf.keras.metrics.MeanSquaredError()] )
         self.model.compile( loss = tf.losses.MeanSquaredError(), optimizer = "adam", metrics=[ "accuracy"] )
-        self.model.fit( self.train_xs, self.train_ys, epochs = 20 )
+        self.model.fit( self.train_xs, self.train_ys, epochs = 30 )
         # self.model.save(self.save_model)
-        with open('models/pima_model.pkl', 'bw') as fp:
+        with open(f'models/pima_model_{self.timestamp}.pkl', 'bw') as fp:
             pickle.dump(self.model, fp)
 
 
@@ -132,20 +132,59 @@ class TrainingInstance:
         # print(f"feature: {features}")
         # print(f"threshold: {threshold}")
 
-        feature_arr = [[] for i in range(max(features) +1)]
+        bootstrap_numbers = [[] for i in range(max(features) +1)]
         for i, feature in enumerate(features):
 
             if feature >= 0:
-                feature_arr[features[i]].append(threshold[i])
+                bootstrap_numbers[features[i]].append(threshold[i])
 
-        print(feature_arr)
-        for i in range(8):
-            print(f"{var_names[i]}: {feature_arr[i]}" )
+        simple_numbers = [[] for i in range(len(self.data.columns[:-1]))]
+        for i in range(len(self.data.columns[:-1])):
+            col = self.data.columns[i]
+            q1 = self.data[col].quantile(0.25)
+            q2 = self.data[col].quantile(0.5)
+            q3 = self.data[col].quantile(0.75)
+            simple_numbers[i] = [q1, q2, q3]
+        
+        with open('smtfiles/pima_grammar_template.txt', 'r') as fp:
+            grammar_template =fp.read()
+
+        codenames = {
+            "Pregnancies" : "P",
+            "Glucose" : "G",
+            "BloodPressure": "BP",
+            "SkinThickness" : "ST",
+            "Insulin": "I",
+            "BMI" : "BMI",
+            "DiabetesPedigreeFunction" : "DPF",
+            "Age" : "A"
+        }
+
+        grammarstr = grammar_template
+        for feature in codenames.keys():
+            magic_numbers_str = " ".join([str(i) for i in bootstrap_numbers[var_names.index(feature)]])
+            if len(bootstrap_numbers[var_names.index(feature)]) == 0:
+                magic_numbers_str = simple_numbers[var_names.index(feature)][1] # use q2 if no number in feature
+                # print(f"It happened! with {var_names.index(feature)}, {feature} \n")
+            grammarstr = grammarstr.replace(f"({codenames[feature]} Real ()", f"({codenames[feature]} Real ({magic_numbers_str})")
+
+        with open('smtfiles/pima_grammar_bootstrap.smt2', 'w') as fp:
+            fp.write(grammarstr)
+
+        grammarstr = grammar_template
+        for feature in codenames.keys():
+            magic_numbers_str = " ".join([str(i) for i in simple_numbers[var_names.index(feature)]])
+            grammarstr = grammarstr.replace(f"({codenames[feature]} Real ()", f"({codenames[feature]} Real ({magic_numbers_str})")
+
+        with open('smtfiles/pima_grammar_simple.smt2', 'w') as fp:
+            fp.write(grammarstr)
+
+        # for i in range(8):
+        #     print(f"{var_names[i]}: {bootstrap_numbers[i]}" )
 
 
 def main():
     T = TrainingInstance()
-    print(T.data)
     T.data_preparation()
     T.build_model()
     T.train_model()

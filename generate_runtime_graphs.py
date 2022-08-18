@@ -4,6 +4,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import rc
 
+plotcolor = '#DC3220'
+fillcolor = '#DC9F9F'
+
 def make_random_dataset():
     iterate = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
     runtime_data = pd.DataFrame(columns=iterate, index=range(1,11))
@@ -13,7 +16,7 @@ def make_random_dataset():
     return runtime_data
 
 
-def make_graph(df1, df2, benchmark, plotcolor, fillcolor):
+def make_runtime_graph(df1, df2, benchmark, plotcolor, fillcolor):
     # iterate = np.array(df.columns.astype('int'))
     iterate = df1.columns
     means = []
@@ -112,9 +115,6 @@ def make_pima_global_accuracy_graph():
         y.append(float(accur))
     for rec in rows2[0]:
         z.append(float(rec))
-    print(x, '\n')
-    print(y, '\n')
-    print(z, '\n')
     
     fig, ax = plt.subplots()
     plt.margins(x = 0)
@@ -238,25 +238,31 @@ def mnist_accuracy_plot():
     plt.savefig('images/mnist_accuracy_vs_recall.pdf')
     # plt.show()
 
-def main():
-    argparser = argparse.ArgumentParser(description=__doc__)
-    argparser.add_argument('--host', metavar='H', default='127.0.0.1', help='IP of the host server (default: 127.0.0.1)')
-    args = argparser.parse_args()
-
-    plotcolor = '#DC3220'
-    fillcolor = '#DC9F9F'
-
-    df = make_random_dataset()
-    maxcol = pd.read_csv('data/mnist_runtime.csv').shape[1]
-    df = pd.read_csv('data/mnist_runtime.csv', usecols=[i for i in range(1,maxcol)])    
-    print(df)
-    make_graph(df,df, "MNIST", plotcolor=plotcolor, fillcolor=fillcolor)
+def pima_runtime_graph():
     plt.clf()
     maxcol = pd.read_csv('data/pima_runtime_bootstrap.csv').shape[1]
     df1 = pd.read_csv('data/pima_runtime_bootstrap.csv', usecols=[i for i in range(1,maxcol)])
     df2 = pd.read_csv('data/pima_runtime_simple.csv', usecols=[i for i in range(1,maxcol)])
-    make_graph(df1, df2, "Pima", plotcolor,fillcolor)
+    make_runtime_graph(df1, df2, "Pima", plotcolor,fillcolor)
 
+
+def mnist_runtime_graph():
+    plt.clf()
+    df = make_random_dataset()
+    maxcol = pd.read_csv('data/mnist_runtime.csv').shape[1]
+    df = pd.read_csv('data/mnist_runtime.csv', usecols=[i for i in range(1,maxcol)])    
+    make_runtime_graph(df,df, "MNIST", plotcolor=plotcolor, fillcolor=fillcolor)
+    
+
+def main():
+    argparser = argparse.ArgumentParser(description=__doc__)
+    argparser.add_argument('--host', metavar='H', default='127.0.0.1', help='IP of the host server (default: 127.0.0.1)')
+    args = argparser.parse_args()
+    
+    mnist_runtime_graph()
+    plt.clf()
+    pima_runtime_graph()
+    plt.clf()
     mnist_accuracy_plot()
     plt.clf()
 

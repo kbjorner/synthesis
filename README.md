@@ -61,5 +61,6 @@ used to run the accuracy and recall experiments.
 
 
 # Todolist for getting presentable repository
-- Make a data/ folder, where all our runtime, models and training data is stored.
 - Make a script to generate MNIST grammar
+- Make all new files timestamped and ignore them.
+- Pima grammar comes with magic numbers.
