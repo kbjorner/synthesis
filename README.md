@@ -33,7 +33,8 @@ used to run the accuracy and recall experiments.
     - *mnist_grammar.smt2*: 
     - *pima_constraints.smt2*: 
     - *pima_grammar_bootstrap.smt2*:
-    - *pima_grammar_quantiles.smt2*:
+    - *pima_grammar_simple.smt2*:
+    - *pima_grammar_template.smt2*:
 - **Utilities/**: Miscelaneous utils for visualization.
 
 - **generate_runtime_graphs.py**. Reads data in the `data/` folder and generates all the graphs shown in the paper.

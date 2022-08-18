@@ -91,12 +91,12 @@ def make_runtime_graph(df1, df2, benchmark, plotcolor, fillcolor):
     plt.savefig(f'images/{benchmark}_runtime.pdf', bbox_inches='tight')
     # plt.show()
 
-def make_pima_global_accuracy_graph():
-    accuracy = pd.read_csv('data/pima_global_accuracy.csv')
+def make_pima_global_accuracy_graph(grammar_type="bootstrap"):
+    accuracy = pd.read_csv(f'data/pima_global_accuracy_{grammar_type}.csv')
     head = accuracy.columns[1:]
     rows = [list(accuracy.loc[0,head].astype(str))]
 
-    recall = pd.read_csv('data/pima_global_recall.csv')
+    recall = pd.read_csv(f'data/pima_global_recall_{grammar_type}.csv')
     head2 = recall.columns[1:]
     rows2 = [list(recall.loc[0,head2].astype(str))]
     plotcolor = '#DC3220'
@@ -133,7 +133,7 @@ def make_pima_global_accuracy_graph():
     plt.xticks([8, 30, 50, 70, 90, 110, 130], ['10', '30', '50', '70', '90', '110', '130'])
     plt.yticks([0.0, 0.5, 1.0],['0', '50', '100']) # can be commented out to remov whtie space? if desired
     
-    plt.savefig('images/pima_accuracy_vs_recall.pdf', bbox_inches='tight')
+    plt.savefig(f'images/pima_accuracy_vs_recall_{grammar_type}.pdf', bbox_inches='tight')
     # plt.show()
 
 
@@ -266,7 +266,9 @@ def main():
     mnist_accuracy_plot()
     plt.clf()
 
-    make_pima_global_accuracy_graph()
+    make_pima_global_accuracy_graph(grammar_type="bootstrap")
+    plt.clf()
+    make_pima_global_accuracy_graph(grammar_type="simple")
 
 
 

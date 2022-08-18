@@ -146,13 +146,13 @@ def classify_image(pixels):
 
 def createFile(constraints_ind, tempfile):
     # g = open("smtfiles/mnist_myconstrs.txt", "rt")
-    g = open("smtfiles/mnist_constraints.txt", "rt")
+    g = open("smtfiles/mnist_constraints.smt2", "rt")
     all_constraints = g.readlines()
     g.close()
     # print(constraints)
     f = open(tempfile, 'w')
     # have this in a file to read from
-    h = open("smtfiles/mnist_grammar.txt", "r")
+    h = open("smtfiles/mnist_grammar.smt2", "r")
     for line in h:
         f.write(line)
     # print('done with the grammar')
@@ -216,13 +216,13 @@ def mimic_program_global_accuracy(T):
 
 def main():
     # num_constraints = 10
-    # with open("smtfiles/mnist_constraints.txt", "rt") as g:
+    # with open("smtfiles/mnist_constraints.smt2", "rt") as g:
     #     all_constraints = g.readlines()
     # arr_constraints = random.sample(range(0,len(all_constraints)), num_constraints)
     # createFile(arr_constraints)
 
     ### UNDER CONSTRUCTION
-    g = open("smtfiles/mnist_constraints.txt", "rt")
+    g = open("smtfiles/mnist_constraints.smt2", "rt")
     all_constraints = g.readlines()
     g.close()
     total_num_constraints = len(all_constraints)-5 # -5 for safety

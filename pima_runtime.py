@@ -1,12 +1,12 @@
 import time, os, random
 from tqdm import tqdm
 import pandas as pd
-from generate_runtime_graphs import pima_runtime_graph
+from generate_graphs import pima_runtime_graph
 import matplotlib.pyplot as plt
 
 
 def createFile(constraints_ind, grammar_type):
-    g = open("smtfiles/pima_constraints.txt", "rt")
+    g = open("smtfiles/pima_constraints.smt2", "rt")
     all_constraints = g.readlines()
     g.close()
     # print(constraints)

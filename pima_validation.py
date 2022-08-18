@@ -4,6 +4,8 @@ import numpy as np, pandas as pd
 import random, pickle
 from tqdm import tqdm
 from pima_NN import TrainingInstance
+from matplotlib import pyplot as plt
+from generate_graphs import make_pima_global_accuracy_graph
 
 def remove_divisions(instring):
     resultstring = instring
@@ -45,7 +47,10 @@ def get_first_correct_parenthesis(instring):
     if first_parenthesis == -1:
         last_parenthesis = instring.find(')')
         if last_parenthesis != 0:
-            return instring[0:last_parenthesis]
+            stripped_spaces = instring[0:last_parenthesis].split(' ')
+            for i in range(len(stripped_spaces)):
+                if len(stripped_spaces[i]) > 0:
+                    return stripped_spaces[i]
         return instring
     last_parenthesis = first_parenthesis
     while num_parenthesis > 0:
@@ -62,7 +67,10 @@ def get_second_correct_parenthesis(instring):
     if first_parenthesis == -1:
         last_parenthesis = instring.find(')')
         if last_parenthesis != 0:
-            return instring[0:last_parenthesis]
+            stripped_spaces = instring[0:last_parenthesis].split(' ')
+            for i in range(len(stripped_spaces)):
+                if len(stripped_spaces[i]) > 0:
+                    return stripped_spaces[i]
         return instring
     last_parenthesis = first_parenthesis
     while num_parenthesis > 0:
@@ -71,6 +79,7 @@ def get_second_correct_parenthesis(instring):
             num_parenthesis += 1
         elif instring[last_parenthesis] == ')':
             num_parenthesis -= 1
+    # print(f"Sent to find first parenthesis: {instring[last_parenthesis+1:].replace(' ','X')}")
     return get_first_correct_parenthesis(instring[last_parenthesis+1:])
 
 def get_third_correct_parenthesis(instring):
@@ -79,7 +88,10 @@ def get_third_correct_parenthesis(instring):
     if first_parenthesis == -1:
         last_parenthesis = instring.find(')')
         if last_parenthesis != 0:
-            return instring[0:last_parenthesis]
+            stripped_spaces = instring[0:last_parenthesis].split(' ')
+            for i in range(len(stripped_spaces)):
+                if len(stripped_spaces[i]) > 0:
+                    return stripped_spaces[i]
         return instring
     last_parenthesis = first_parenthesis
     while num_parenthesis > 0:
@@ -88,6 +100,7 @@ def get_third_correct_parenthesis(instring):
             num_parenthesis += 1
         elif instring[last_parenthesis] == ')':
             num_parenthesis -= 1
+    # print(f"Sent to find second parenthesis: {instring[last_parenthesis+1:].replace(' ','X')}")
     return get_second_correct_parenthesis(instring[last_parenthesis+1:])
 
 
@@ -120,9 +133,11 @@ def clean_mimic_program(mimic_smtfile):
         last_portion = last_portion.replace(f"_let_{i+1} ",f"{let_values[i]} ")
         last_portion = last_portion.replace(f"_let_{i+1})",f"{let_values[i]})")
     ite = last_portion.find('ite')
+    # print(f"Last portions: {last_portion[ite:]} \n")
     tree_first = get_first_correct_parenthesis(last_portion[ite:])
     tree_second = get_second_correct_parenthesis(last_portion[ite:])
     tree_third = get_third_correct_parenthesis(last_portion[ite:])
+    # print(f"first: {tree_first}\n second: {tree_second}\n, third: {tree_third}\n")
     final = f"(ite {tree_first} {tree_second} {tree_third})"
     with open('diagnostic_mimic_program.txt', 'w') as fp:
         fp.write(final)
@@ -157,16 +172,13 @@ def classify_patient(values):
     return hy.eval(expr)
 
 
-def createFile(constraints_ind, tempfile):
-    # g = open("smtfiles/mnist_myconstrs.txt", "rt")
-    g = open("smtfiles/pima_constraints.txt", "rt")
+def createFile(constraints_ind, inputfile, outputfile, grammar_type):
+    g = open("smtfiles/pima_constraints.smt2", "rt")
     all_constraints = g.readlines()
     g.close()
     # print(constraints)
-    f = open(tempfile, 'w')
-    # have this in a file to read from
-    # h = open("smtfiles/pima_grammar_quantiles.txt", "r")
-    h = open("smtfiles/pima_grammar.txt", "r")
+    f = open(inputfile, 'w')
+    h = open(f"smtfiles/pima_grammar_{grammar_type}.smt2", "r")
     for line in h:
         f.write(line)
     # print('done with the grammar')
@@ -177,11 +189,10 @@ def createFile(constraints_ind, tempfile):
     f.close()
 
     start_time = time.time()
-    os.system(f'../cvc5-Linux --lang=sygus2 {tempfile} >pima_mimic.smt2')
+    os.system(f'../cvc5-Linux --lang=sygus2 {inputfile} >{outputfile}')
 
     runTime = time.time() - start_time
     
-    # runs through getStates function to use for mean calculation
     return runTime  
 
 
@@ -198,8 +209,6 @@ def run_benchmark(n, iterate, runtime_data):
     # runtime_data.to_csv('mnist_runtime.csv')
 
 def mimic_program_global_accuracy(T):
-    xtotest = T.test_xs.reset_index(drop=True)
-    ytotest = T.test_ys.reset_index(drop=True)
 
     total_predictions = 0
     right_predictions_acc = 0
@@ -221,23 +230,18 @@ def mimic_program_global_accuracy(T):
     
 
 
-def get_accuracy(num_constraints, T):
-    index_array = list(range(num_constraints))
-    tempfile = 'smtfiles/temp_pima.smt2'
-    createFile(index_array, tempfile)
-    clean_mimic_program('pima_mimic.smt2')
-    model_accuracy = T.local_accuracy(index_array)
-    print(model_accuracy)
-    mimic_accuracy = mimic_program_global_accuracy(T)
-    print(mimic_accuracy)
+# def get_accuracy(num_constraints, T):
+#     index_array = list(range(num_constraints))
+#     tempfile = 'smtfiles/temp_pima.smt2'
+#     createFile(index_array, tempfile)
+#     clean_mimic_program('pima_mimic.smt2')
+#     model_accuracy = T.local_accuracy(index_array)
+#     print(model_accuracy)
+#     mimic_accuracy = mimic_program_global_accuracy(T)
+#     print(mimic_accuracy)
 
 
 def main():
-    # num_constraints = 10
-    # with open("smtfiles/mnist_constraints.txt", "rt") as g:
-    #     all_constraints = g.readlines()
-    # arr_constraints = random.sample(range(0,len(all_constraints)), num_constraints)
-    # createFile(arr_constraints)
 
     ### UNDER CONSTRUCTION
     T = TrainingInstance()
@@ -245,18 +249,29 @@ def main():
     with open('models/pima_model.pkl', 'br') as fp:
         T.model = pickle.load(fp)
     T.make_constraints()
+    inputfile = 'pima_aux_input.smt2'
+    outputfile = 'pima_aux_output.smt2'
     constraints = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140]
-    global_accuracy = pd.DataFrame(columns=constraints)
-    global_recall = pd.DataFrame(columns=constraints)
-    for num_constraints in tqdm(constraints):
-        tempfile = 'smtfiles/temp_pima.smt2'
-        createFile(list(range(num_constraints)), tempfile)
-        clean_mimic_program('pima_mimic.smt2')
-        acc, rec = mimic_program_global_accuracy(T)
-        global_accuracy.loc[0,num_constraints] = acc
-        global_recall.loc[0,num_constraints] = rec
-        global_accuracy.to_csv('data/pima_global_accuracy_quantiles.csv')
-        global_recall.to_csv('data/pima_global_recall_quantiles.csv')
+    
+    ### ONE TIME FOR BOOTSTRAP MAGIC NUMBERS
+
+    grammar_type = "bootstrap"
+
+    for grammar_type in {"bootstrap", "simple"}:
+        grammar_type = "bootstrap"
+        global_accuracy = pd.DataFrame(columns=constraints)
+        global_recall = pd.DataFrame(columns=constraints)
+        for num_constraints in tqdm(constraints):
+            createFile(list(range(num_constraints)), inputfile, outputfile, grammar_type)
+            clean_mimic_program(outputfile)
+            acc, rec = mimic_program_global_accuracy(T)
+            global_accuracy.loc[0,num_constraints] = acc
+            global_recall.loc[0,num_constraints] = rec
+            global_accuracy.to_csv(f'data/pima_global_accuracy_{grammar_type}.csv')
+            global_recall.to_csv(f'data/pima_global_recall_{grammar_type}.csv')
+
+        make_pima_global_accuracy_graph(grammar_type=grammar_type)
+        plt.show()
     
     # for some reason, keras load model doenst' work
     

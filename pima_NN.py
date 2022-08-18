@@ -86,7 +86,7 @@ class TrainingInstance:
         print("Test accuracy:", score[1])
 
     def make_constraints(self):
-        f = open("smtfiles/pima_constraints.txt", "w")
+        f = open("smtfiles/pima_constraints.smt2", "w")
         oneCounter = 0
         zeroCounter = 0
         
@@ -146,7 +146,7 @@ class TrainingInstance:
             q3 = self.data[col].quantile(0.75)
             simple_numbers[i] = [q1, q2, q3]
         
-        with open('smtfiles/pima_grammar_template.txt', 'r') as fp:
+        with open('smtfiles/pima_grammar_template.smt2', 'r') as fp:
             grammar_template =fp.read()
 
         codenames = {
