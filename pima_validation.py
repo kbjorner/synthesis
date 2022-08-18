@@ -196,18 +196,6 @@ def createFile(constraints_ind, inputfile, outputfile, grammar_type):
     return runTime  
 
 
-def run_benchmark(n, iterate, runtime_data):
-    for i in tqdm(range(len(iterate))):
-        num_constraints = iterate[i]
-        arr_constraints = [] # size i in iterate
-        
-        for i in range(1,11):
-            arr_constraints = random.sample(range(0,153), num_constraints)
-            timeRun = createFile(arr_constraints)
-            runtime_data.loc[i,num_constraints] = timeRun
-    
-    # runtime_data.to_csv('mnist_runtime.csv')
-
 def mimic_program_global_accuracy(T):
 
     total_predictions = 0

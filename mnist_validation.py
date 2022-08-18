@@ -46,7 +46,10 @@ def get_first_correct_parenthesis(instring):
     if first_parenthesis == -1:
         last_parenthesis = instring.find(')')
         if last_parenthesis != 0:
-            return instring[0:last_parenthesis]
+            stripped_spaces = instring[0:last_parenthesis].split(' ')
+            for i in range(len(stripped_spaces)):
+                if len(stripped_spaces[i]) > 0:
+                    return stripped_spaces[i]
         return instring
     last_parenthesis = first_parenthesis
     while num_parenthesis > 0:
@@ -63,7 +66,10 @@ def get_second_correct_parenthesis(instring):
     if first_parenthesis == -1:
         last_parenthesis = instring.find(')')
         if last_parenthesis != 0:
-            return instring[0:last_parenthesis]
+            stripped_spaces = instring[0:last_parenthesis].split(' ')
+            for i in range(len(stripped_spaces)):
+                if len(stripped_spaces[i]) > 0:
+                    return stripped_spaces[i]
         return instring
     last_parenthesis = first_parenthesis
     while num_parenthesis > 0:
@@ -72,6 +78,7 @@ def get_second_correct_parenthesis(instring):
             num_parenthesis += 1
         elif instring[last_parenthesis] == ')':
             num_parenthesis -= 1
+    # print(f"Sent to find first parenthesis: {instring[last_parenthesis+1:].replace(' ','X')}")
     return get_first_correct_parenthesis(instring[last_parenthesis+1:])
 
 def get_third_correct_parenthesis(instring):
@@ -80,7 +87,10 @@ def get_third_correct_parenthesis(instring):
     if first_parenthesis == -1:
         last_parenthesis = instring.find(')')
         if last_parenthesis != 0:
-            return instring[0:last_parenthesis]
+            stripped_spaces = instring[0:last_parenthesis].split(' ')
+            for i in range(len(stripped_spaces)):
+                if len(stripped_spaces[i]) > 0:
+                    return stripped_spaces[i]
         return instring
     last_parenthesis = first_parenthesis
     while num_parenthesis > 0:
@@ -90,6 +100,7 @@ def get_third_correct_parenthesis(instring):
         elif instring[last_parenthesis] == ')':
             num_parenthesis -= 1
     return get_second_correct_parenthesis(instring[last_parenthesis+1:])
+
 
 
 def clean_mimic_program(mimic_smtfile):
@@ -132,12 +143,13 @@ def classify_image(pixels):
     file.close()
 
     data = data.replace("ite", "if")
+    # print(pixels)
 
     args = ""
     size = len(pixels)
-    for y in range(size):
-        for x in range(size):
-            args += "(setv b{}_{} {})".format(y, x, pixels[y][x])
+    for x in range(size):
+        for y in range(size):
+            args += "(setv b{}_{} {})".format(x, y, pixels[x][y])
 
     prog = args + data
     expr = hy.read(f"((fn [] {prog}))")
@@ -188,17 +200,34 @@ def mimic_program_global_accuracy(T):
     xtotest = x_test.astype("float32") / 255
     ytotest = y_test
 
-    right_predictions = 0
+    model_outcome = T.model.predict(xtotest)
+    right_predictions_acc = 0
+    right_predictions_rec = 0
     total_predictions = 0
+    truths = 0
+    falses = 0
 
     for i in tqdm(range(xtotest.shape[0])):
         ground_truth = ytotest[i]
-        if ground_truth == 1 or ground_truth == 7:
+        if ground_truth == 7 or ground_truth == 7:
             total_predictions += 1
             program_outcome = classify_image(list(xtotest[i]))
-            if program_outcome == (ground_truth == 1):
-                right_predictions += 1
-    return right_predictions/total_predictions
+            prediction = np.argmax(model_outcome[i])
+            if program_outcome:
+                truths += 1
+            else:
+                falses += 1
+            if program_outcome == (ground_truth == 7):
+                right_predictions_acc += 1
+            if program_outcome == (prediction == 7):
+                right_predictions_rec +=1
+
+        # if i % 200 == 0:
+        #     print(f"Truths: {truths}, Falses: {falses}, Accuracy: {100*max(truths,falses)/(max(1,truths+falses))}%\n")
+            # print(f"\n***********\n Ground truth: {ground_truth}, Program outcome: {program_outcome}, NN outcome: {prediction} \n")
+            # T.display_digit(xtotest[i])
+            # print("\n***********\n")
+    return right_predictions_acc/total_predictions, right_predictions_rec/total_predictions 
 
     
 
@@ -232,9 +261,11 @@ def main():
     # with open('models/mnist_model.pkl', 'br') as fp:
     #     T.model = pickle.load(fp)
     T.load_model('models/mnist_model.h5')
-    constraints = [10, 20, 30, 40, 50, 60, 70, 80]
+    # constraints = [10, 20, 30, 40, 50, 60, 70, 80]
+    constraints = [60]
 
     global_accuracy = pd.DataFrame(columns=constraints)
+    global_recall = pd.DataFrame(columns=constraints)
     n=10
     for num_constraints in tqdm(constraints):
         for i in tqdm(range(n)):
@@ -242,9 +273,12 @@ def main():
             arr_constraints = random.sample(range(0,total_num_constraints), num_constraints)
             createFile(arr_constraints, tempfile)
             clean_mimic_program('mnist_mimic.smt2')
-            global_accuracy.loc[i,num_constraints] = mimic_program_global_accuracy(T)
+            acc, rec = mimic_program_global_accuracy(T)
+            global_accuracy.loc[i,num_constraints] = acc
+            global_recall.loc[i,num_constraints] = rec
+            global_accuracy.to_csv(f'data/mnist_global_accuracy.csv')
+            global_recall.to_csv(f'data/mnist_global_recall.csv')
 
-    global_accuracy.to_csv('data/mnist_global_accuracy.csv')
     
     
 if __name__ == "__main__":
