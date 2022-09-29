@@ -6,7 +6,8 @@ import tensorflow as tf
 from datetime import datetime
 import os
 from collections import Counter
-from sklearn import tree
+from sklearn import tree, preprocessing
+from sklearn.metrics.pairwise import cosine_similarity, cosine_distances
 import graphviz, pickle
 
 
@@ -46,6 +47,15 @@ class TrainingInstance:
         # shuffle data "in place": https://stackoverflow.com/a/34879805
         # with random state for consistency for the train/test split
         self.data = self.data.sample( frac = 1 , random_state=42).reset_index( drop = True )
+
+        # normalize data (for cosine distance calculation)
+        # for col in [ 'Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age' ]:
+
+        outcome_col = self.data['Outcome']
+        print(outcome_col)
+        self.data = pd.DataFrame(preprocessing.normalize(self.data.loc[:,'Pregnancies':'Age']), columns = [ 'Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age' ])
+        self.data['Outcome'] = outcome_col
+        print(self.data)
 
         xs = self.data.copy()
         ys = xs.pop( 'Outcome' ).to_frame( name = 'Outcome' )
@@ -91,11 +101,34 @@ class TrainingInstance:
         zeroCounter = 0
         
         outcomes = self.model.predict([self.test_xs.values]).reshape(len(self.test_xs.values),)
-        outcomes_df = pd.DataFrame(columns=['outcome', 'confidence', 'prediction'])
+        print(outcomes)
+        outcomes_df = pd.DataFrame(columns=['outcome', 'confidence', 'prediction', 'cos_dist'])
         outcomes_df.outcome = outcomes
         outcomes_df.prediction = outcomes_df.outcome > 0.5
         outcomes_df.confidence = np.abs(outcomes - 0.5)
+        min = 1000
+        index = -1
+        for i, x in enumerate(outcomes_df.confidence):
+            if x < min:
+                min = x
+                index = i
         outcomes_df = outcomes_df.sort_values('confidence') # sorted, lowest confidence first
+
+        temp = np.array([self.test_xs.values[index]])
+        # print(temp)
+        # print(self.test_xs.values[1])
+        outcomes_df['cos_dist'][index] = 1
+        for i in outcomes_df.index:
+            if i != index:
+                point = np.array([self.test_xs.values[i]])
+                # outcome = outcomes_df.loc[i,'prediction']
+                outcomes_df['cos_dist'][i] = cosine_similarity(point, temp).flatten()[0]
+        
+
+        print(outcomes_df)
+        outcomes_df = outcomes_df.sort_values(by = 'cos_dist', ascending = False)
+
+        print(outcomes_df[0:20])
 
         for i in outcomes_df.index:
             point = self.test_xs.values[i]
@@ -146,7 +179,7 @@ class TrainingInstance:
             q3 = self.data[col].quantile(0.75)
             simple_numbers[i] = [q1, q2, q3]
         
-        with open('smtfiles/pima_grammar_template.smt2', 'r') as fp:
+        with open('smtfiles/pima_grammar_template.txt', 'r') as fp:
             grammar_template =fp.read()
 
         codenames = {
