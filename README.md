@@ -24,6 +24,8 @@ sudo chmod +x cvc5-Linux
 For other systems, go to the [Downloads](https://cvc5.github.io/downloads.html)
 and follow installation instructions.
 
+Inside the python scripts, cvc5 is called from an installed binary. To use them, put the path to your binary in the `config.yml` file.
+
 
 ## Project Structure
 
@@ -43,7 +45,7 @@ used to run the accuracy and recall experiments.
     - *pima_global_recall_quantiles.csv*:
     - *pima_indians_diabetes.csv*: Contains the Pima dataset
     - *pima_runtime.csv*: Contains the data corresponding to runtime experiments in the Pima benchmark. --> ToDo: mix this runtimebootstrap.
-- **images/**: Contains the graphs generated.
+- **images/**: Graphs generated go to this folder.
 - **models/**: Contains the trained Neural Networks used as opaque models in our evaluation as Keras ready-to-load models.
 - **smtfiles/**: Contains the relevant SMT-LIBv2 files. --> To Do: pass them to smt extension
     - *mnist_constraints.smt2*: 
@@ -123,11 +125,3 @@ For the runtime benchmark:
 ```
 python3 pima_runtime.py
 ```
-
-
-
-
-
-
-# Todolist for getting presentable repository
-- Make a script to generate MNIST grammar

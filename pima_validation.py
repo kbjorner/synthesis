@@ -1,7 +1,8 @@
 from functools import total_ordering
-import time, os, hy
+import time, os, hy, yaml
 import numpy as np, pandas as pd
 import random, pickle
+import subprocess, io
 from tqdm import tqdm
 from pima_NN import TrainingInstance
 from matplotlib import pyplot as plt
@@ -188,8 +189,20 @@ def createFile(constraints_ind, inputfile, outputfile, grammar_type):
     f.write("(check-synth)")
     f.close()
 
+    with open('config.yml', 'r') as cf:
+        cvc5path = yaml.load(cf, Loader=yaml.FullLoader)['cvc5']
+
     start_time = time.time()
-    os.system(f'../cvc5-Linux --lang=sygus2 {inputfile} >{outputfile}')
+    with open(outputfile, 'w') as foo:
+        # p = subprocess.Popen(f'{cvc5path} --lang=sygus2 {inputfile} >{outputfile}', shell=True)
+        p = subprocess.Popen([f'{cvc5path}', '--lang=sygus2', inputfile], stdout=foo, shell=False)
+        try:
+            p.wait(10)
+        except:
+            p.kill()
+            print("Had to kill one\n")
+
+        # os.system(f'{cvc5path} --lang=sygus2 {inputfile} >{outputfile}')
 
     runTime = time.time() - start_time
     
@@ -234,9 +247,10 @@ def main():
     ### UNDER CONSTRUCTION
     T = TrainingInstance()
     T.data_preparation()
-    with open('models/pima_model.pkl', 'br') as fp:
+    with open('models/pima_model2.pkl', 'br') as fp:
         T.model = pickle.load(fp)
     T.make_constraints()
+    T.computeMagicNumbers()
     inputfile = 'pima_aux_input.smt2'
     outputfile = 'pima_aux_output.smt2'
     constraints = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140]
@@ -246,7 +260,7 @@ def main():
     grammar_type = "bootstrap"
 
     for grammar_type in {"bootstrap", "simple"}:
-        grammar_type = "bootstrap"
+        # grammar_type = "bootstrap"
         global_accuracy = pd.DataFrame(columns=constraints)
         global_recall = pd.DataFrame(columns=constraints)
         for num_constraints in tqdm(constraints):

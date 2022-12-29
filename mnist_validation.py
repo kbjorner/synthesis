@@ -1,5 +1,5 @@
 from functools import total_ordering
-import time, os, hy
+import time, os, hy, yaml
 import numpy as np, pandas as pd
 import random, pickle
 from tqdm import tqdm
@@ -174,8 +174,10 @@ def createFile(constraints_ind, tempfile):
     f.write("(check-synth)")
     f.close()
 
+    with open('config.yml', 'r') as cf:
+        cvc5path = yaml.load(cf, Loader=yaml.FullLoader)['cvc5']
     start_time = time.time()
-    os.system(f'../cvc5-Linux --lang=sygus2 {tempfile} >mnist_mimic.smt2')
+    os.system(f'{cvc5path} --lang=sygus2 {tempfile} >mnist_mimic.smt2')
 
     runTime = time.time() - start_time
     

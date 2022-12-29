@@ -1,4 +1,4 @@
-import time, os, random
+import time, os, random, yaml
 from tqdm import tqdm
 import pandas as pd
 from generate_graphs import pima_runtime_graph
@@ -23,8 +23,11 @@ def createFile(constraints_ind, grammar_type):
     f.write("(check-synth)")
     f.close()
 
+    with open('config.yml', 'r') as cf:
+        cvc5path = yaml.load(cf, Loader=yaml.FullLoader)['cvc5']
+
     start_time = time.time()
-    os.system(f'../cvc5-Linux --lang=sygus2 {auxfile1} >{auxfile2}')
+    os.system(f'{cvc5path} --lang=sygus2 {auxfile1} >{auxfile2}')
     os.remove(auxfile1)
     os.remove(auxfile2)
 

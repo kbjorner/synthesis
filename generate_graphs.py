@@ -6,6 +6,13 @@ from matplotlib import rc
 
 plotcolor = '#DC3220'
 fillcolor = '#DC9F9F'
+pretty = True  # Turn to True if you have LaTeX installed
+
+fontsize = 16
+if pretty:
+    plt.rcParams.update({'font.size': fontsize})
+    rc('font', **{'family': 'serif', 'serif': ['Times']})
+    rc('text', usetex=True)
 
 def make_random_dataset():
     iterate = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
@@ -52,10 +59,7 @@ def make_runtime_graph(df1, df2, benchmark, plotcolor, fillcolor):
 
     
     iterate = np.array(df1.columns.astype('int'))
-    fontsize = 16
-    plt.rcParams.update({'font.size': fontsize})
-    rc('font', **{'family': 'serif', 'serif': ['Times']})
-    rc('text', usetex=True)
+    
 
     fig, ax = plt.subplots()
 
@@ -102,10 +106,8 @@ def make_pima_global_accuracy_graph(grammar_type="bootstrap"):
     plotcolor = '#DC3220'
     horizcolor = '#FF6600'
 
-    # hliney = '' # enter path to this value, replace line below with this.
     hliney = 0.78
 
-#     define vars
     x = []
     y = []
     z = []
@@ -171,8 +173,49 @@ def readCSVfile_mnist_accuracy(csvfile):
 #     print(f"means: {means}; upperbound: {upperbound}")
     return df, head, rows, means, lowbound, upbound
 
-
 def mnist_accuracy_plot():
+    plotcolor = '#DC3220'
+    fillbetweencolor = '#DC9F9F'
+    horizcolor = '#FF6600'
+
+    # hliney = '' # enter path to this value, replace line below with this.
+    hliney = 99
+    df1, head1, rows1, means1, lowbound1, upbound1 = readCSVfile_mnist_accuracy('data/mnist_global_accuracy.csv')
+    df2, head2, rows2, means2, lowbound2, upbound2 = readCSVfile_mnist_accuracy('data/mnist_global_recall.csv')
+#     define vars
+    x = []
+    for n in head1:
+        x.append(int(n))
+
+    fig, ax = plt.subplots()
+    
+    
+    
+    ax.fill_between(x, lowbound1, upbound1, color = fillbetweencolor, alpha = 0.7)
+    ax.plot(x, means1, color = plotcolor, marker = 'o', markersize=4)
+    ax.fill_between(x, lowbound2, upbound2, color = '#009F9F', alpha = 0.3)
+    ax.plot(x, means2, color = '#008080', marker = 'o', markersize=4)
+    ax.axhline(hliney, color = horizcolor, linestyle = '--')
+        
+    # ax.set_ylim(80, 100)
+    
+    
+    
+    
+    for spine in ['right', 'top']:
+        ax.spines[spine].set_visible(False)
+    
+    fig.legend(['Mimic Program Accuracy','Mimic Program Recall', 'Opaque Model Accuracy'], loc=[0.4,0.2])
+#     plt.title('Comparative MNIST Accuracy: Opaque Model vs. Mimic Program')
+    plt.xlabel('Number of Examples')
+    plt.ylabel('Accuracy (\%)')
+#     plt.yticks([0.0, 0.5, 1.0],['', '0.5', '1.0']) # can be commented out to remov whtie space? if desired
+    
+    plt.savefig('images/mnist_accuracy_vs_recall.pdf')
+    # plt.show()
+
+
+def mnist_accuracy_plot_cut():
     
     plotcolor = '#DC3220'
     fillbetweencolor = '#DC9F9F'

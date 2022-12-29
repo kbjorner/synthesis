@@ -1,4 +1,6 @@
 import os, random, statistics
+import yaml
+
 
 def ites(data):
     counter = 0
@@ -28,7 +30,10 @@ def createFile(constraints_ind, grammar_type):
     f.write("(check-synth)")
     f.close()
 
-    os.system(f'../cvc5/build/bin/cvc5 --lang=sygus2 {auxfile1} > {auxfile2}') # >{auxfile2}
+    with open('config.yml', 'r') as cf:
+        cvc5path = yaml.load(cf, Loader=yaml.FullLoader)['cvc5']
+    
+    os.system(f'{cvc5path} --lang=sygus2 {auxfile1} > {auxfile2}') # >{auxfile2}
     # os.remove(auxfile1)
     # os.remove(auxfile2)
 

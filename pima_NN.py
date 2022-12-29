@@ -117,13 +117,12 @@ class TrainingInstance:
         temp = np.array([self.test_xs.values[index]])
         # print(temp)
         # print(self.test_xs.values[1])
-        outcomes_df['cos_dist'][index] = 1
+        outcomes_df.loc[index, 'cos_dist'] = 1
         for i in outcomes_df.index:
             if i != index:
                 point = np.array([self.test_xs.values[i]])
                 # outcome = outcomes_df.loc[i,'prediction']
-                outcomes_df['cos_dist'][i] = cosine_similarity(point, temp).flatten()[0]
-        
+                outcomes_df.loc[i,'cos_dist'] = cosine_similarity(point, temp).flatten()[0]
 
         print(outcomes_df)
         outcomes_df = outcomes_df.sort_values(by = 'cos_dist', ascending = False)
@@ -179,7 +178,7 @@ class TrainingInstance:
             q3 = self.data[col].quantile(0.75)
             simple_numbers[i] = [q1, q2, q3]
         
-        with open('smtfiles/pima_grammar_template.txt', 'r') as fp:
+        with open('smtfiles/pima_grammar_template.smt2', 'r') as fp:
             grammar_template =fp.read()
 
         codenames = {
