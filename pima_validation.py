@@ -247,7 +247,9 @@ def main():
     ### UNDER CONSTRUCTION
     T = TrainingInstance()
     T.data_preparation()
-    with open('models/pima_model2.pkl', 'br') as fp:
+    model_to_test = 'models/pima_model.pkl'
+    # model_to_test = 'models/pima_model2.pkl'
+    with open(model_to_test, 'br') as fp:
         T.model = pickle.load(fp)
     T.make_constraints()
     T.computeMagicNumbers()

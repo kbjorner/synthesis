@@ -23,7 +23,21 @@ def make_random_dataset():
     return runtime_data
 
 
-def make_runtime_graph(df1, df2, benchmark, plotcolor, fillcolor):
+def count_grammar_nodes():
+    with open('smtfiles/pima_grammar_bootstrap.smt2', 'r') as fp:
+        data = fp.readlines()
+        number_of_nodes = 0
+        for line in data:
+            if line.count('Real') == 1:
+                line = line.replace('(', ' ')
+                line = line.replace(')', ' ')
+                for i in line.split(' '):
+                    if i.replace('.','').isnumeric():
+                        number_of_nodes += 1
+    return number_of_nodes
+
+
+def make_runtime_graph(df1, df2, benchmark, whatplot, plotcolor, fillcolor):
     # iterate = np.array(df.columns.astype('int'))
     iterate = df1.columns
     means = []
@@ -59,6 +73,8 @@ def make_runtime_graph(df1, df2, benchmark, plotcolor, fillcolor):
 
     
     iterate = np.array(df1.columns.astype('int'))
+    horizcolor = '#FF6600'
+
     
 
     fig, ax = plt.subplots()
@@ -68,15 +84,24 @@ def make_runtime_graph(df1, df2, benchmark, plotcolor, fillcolor):
     if benchmark == "Pima":
         plt.fill_between(iterate, lowerbound2, upperbound2, color = '#009F9F', alpha = 0.5)
         plt.plot(iterate, means2, color = '#008080', marker = 'o', markersize=4)
+        if whatplot != 'runtime':
+            number_of_nodes = count_grammar_nodes()
+            plt.axhline(number_of_nodes, color = horizcolor, linestyle = '--')
     if benchmark == "Pima":
-        plt.legend(['Mean Boostrap', 'Mean Simple', 'Mean $\pm$ stdev','Mean $\pm$ stdev'])
+        if whatplot != 'runtime':
+            plt.legend(['Mean Boostrap', 'Mean Simple','Size reference', 'Mean $\pm$ stdev','Mean $\pm$ stdev',])
+        else:
+            plt.legend(['Mean Boostrap', 'Mean Simple', 'Mean $\pm$ stdev','Mean $\pm$ stdev'])
     else:
         plt.legend(['Mean', 'Mean $\pm$ stdev'])
 
     for spine in ['right', 'top']:
         ax.spines[spine].set_visible(False)
     plt.xlabel('Number of Examples', size = fontsize)
-    plt.ylabel('Runtime (seconds)', size=fontsize)
+    if whatplot == "runtime":
+        plt.ylabel('Runtime (seconds)', size=fontsize)
+    else:
+        plt.ylabel('Tree size (nodes)', size=fontsize)
     # plt.title(f'Mimic Program Synthesis on {benchmark}', size = fontsize + 2)
     
     yspaced = np.linspace(0,maxtime,5)
@@ -92,7 +117,7 @@ def make_runtime_graph(df1, df2, benchmark, plotcolor, fillcolor):
     if benchmark == "MNIST":
         ax.set_aspect(aspect=0.75)
     # plt.margins(x = 0)
-    plt.savefig(f'images/{benchmark}_runtime.pdf', bbox_inches='tight')
+    plt.savefig(f'images/{benchmark}_{whatplot}.pdf', bbox_inches='tight')
     # plt.show()
 
 def make_pima_global_accuracy_graph(grammar_type="bootstrap"):
@@ -286,7 +311,15 @@ def pima_runtime_graph():
     maxcol = pd.read_csv('data/pima_runtime_bootstrap.csv').shape[1]
     df1 = pd.read_csv('data/pima_runtime_bootstrap.csv', usecols=[i for i in range(1,maxcol)])
     df2 = pd.read_csv('data/pima_runtime_simple.csv', usecols=[i for i in range(1,maxcol)])
-    make_runtime_graph(df1, df2, "Pima", plotcolor,fillcolor)
+    make_runtime_graph(df1, df2, "Pima", "runtime", plotcolor,fillcolor)
+
+
+def pima_treestats_graph():
+    plt.clf()
+    maxcol = pd.read_csv('data/pima_treestats_bootstrap.csv').shape[1]
+    df1 = pd.read_csv('data/pima_treestats_bootstrap.csv', usecols=[i for i in range(1,maxcol)])
+    df2 = pd.read_csv('data/pima_treestats_simple.csv', usecols=[i for i in range(1,maxcol)])
+    make_runtime_graph(df1, df2, "Pima", "treestats", plotcolor,fillcolor)
 
 
 def mnist_runtime_graph():
@@ -294,7 +327,7 @@ def mnist_runtime_graph():
     df = make_random_dataset()
     maxcol = pd.read_csv('data/mnist_runtime.csv').shape[1]
     df = pd.read_csv('data/mnist_runtime.csv', usecols=[i for i in range(1,maxcol)])    
-    make_runtime_graph(df,df, "MNIST", plotcolor=plotcolor, fillcolor=fillcolor)
+    make_runtime_graph(df,df, "MNIST", "runtime", plotcolor=plotcolor, fillcolor=fillcolor)
     
 
 def main():
