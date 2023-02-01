@@ -194,7 +194,7 @@ def main():
     # T.load_model('models/mnist_model.h5')
     T.evaluate_model()
     T.simple_evaluation()
-    T.make_constraints(0, 1, 7, f'mnist_constraints_multi.smt2')
+    T.make_constraints(0, 1, 7, f'smtfiles/mnist_constraints.smt2')
 
 
 if __name__ == "__main__":
