@@ -141,7 +141,7 @@ def clean_mimic_program(mimic_smtfile):
         final = f"(ite {tree_first} {tree_second} {tree_third})"
     else:
         tree_first = get_first_correct_parenthesis(last_portion)
-        final = f"(ite true {tree_first} {tree_first})"
+        final = f"(ite True {tree_first} {tree_first})"
 
     with open('mnist_mimic_program.txt', 'w') as fp:
         fp.write(final)
