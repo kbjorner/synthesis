@@ -147,7 +147,7 @@ def clean_mimic_program(mimic_smtfile):
         fp.write(final)
 
 def classify_image(pixels):
-    file = open("mnist_mimic_program.txt", "r")
+    file = open("mnist_mimic_program.txt", "r") # previously was mnist_mimic_program.txt
     data = file.read()
     file.close()
 
@@ -282,7 +282,7 @@ def main():
         for i in tqdm(range(n)):
             tempfile = 'smtfiles/temp_mnist.smt2'
             arr_constraints = random.sample(range(0,total_num_constraints), num_constraints)
-            createFile(arr_constraints, tempfile)
+            createFile(arr_constraints, tempfile) # calls cvc5 and creates outut file
             clean_mimic_program('mnist_mimic.smt2')
             acc, rec = mimic_program_global_accuracy(T)
             global_accuracy.loc[i,num_constraints] = acc
