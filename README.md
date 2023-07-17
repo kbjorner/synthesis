@@ -1,6 +1,4 @@
-# Synthesizing Local Mimic Programs for Opaque Models - Code & Data Appendix
-
-This is the accompaning repository for the paper **Synthesizing Local Mimic Programs for Opaque Models** submitted to AAAI 23.
+# Synthesizing Mimic Programs - Code & Data Appendix
 
 
 ## Set Up
@@ -44,7 +42,7 @@ used to run the accuracy and recall experiments.
     - *pima_global_recall_bootsrap.csv*:
     - *pima_global_recall_quantiles.csv*:
     - *pima_indians_diabetes.csv*: Contains the Pima dataset
-    - *pima_runtime.csv*: Contains the data corresponding to runtime experiments in the Pima benchmark. --> ToDo: mix this runtimebootstrap.
+    - *pima_runtime.csv*: Contains the data corresponding to runtime experiments in the Pima benchmark.
 - **images/**: Graphs generated go to this folder.
 - **models/**: Contains the trained Neural Networks used as opaque models in our evaluation as Keras ready-to-load models.
 - **smtfiles/**: Contains the relevant SMT-LIBv2 files. --> To Do: pass them to smt extension
