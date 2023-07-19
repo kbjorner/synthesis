@@ -101,11 +101,11 @@ python3 mnist_runtime.py
 ### **Pima**
 First of all, a model needs to be trained
 ```
-python3 pima_Pima.py
+python3 pima_NN.py
 ```
 
 This will save the corresponding model in the *models/* folder, 
-and generate the constraints file file, 
+and generate the constraints file in *smtfiles/pima_constraints.smt2*, 
 containing the examples for our Programming-by-example method, 
 enconded as constraints for the synthesis step later.
 In the case of Pima, the constraints are sorted by acending *confidence*, 

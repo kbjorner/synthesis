@@ -12,7 +12,7 @@ import graphviz, pickle
 
 
 """
-Class to train and evaluate MNIST dataset. Saves model.
+Class to train and evaluate Pima dataset. Saves model.
 Saves generated constraints.
 """
 
@@ -57,10 +57,6 @@ class TrainingInstance:
         self.data = self.data.sample( frac = 1 , random_state=42).reset_index( drop = True )
 
         # normalize data (for cosine distance calculation)
-        # for col in [ 'Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age' ]:
-
-        # outcome_col = self.data['Outcome']
-        # print(outcome_col)
         self.data_normalization()
         # self.data['Outcome'] = outcome_col
         self.data.to_csv('data/normalized_pima.csv')
@@ -87,8 +83,8 @@ class TrainingInstance:
         self.model.add( keras.layers.Dense( 9, input_dim=9, kernel_initializer='normal', activation='relu' ) )
         self.model.add( keras.layers.Dense( 20, activation='relu' ) )
         self.model.add( keras.layers.Dense( 20, activation='relu' ) )
-        self.model.add( keras.layers.Dense( 1, activation='relu' ) )
-        self.model.add( keras.layers.ReLU( max_value = 1.0 ) ) # for clamping
+        self.model.add( keras.layers.Dense( 1, activation='sigmoid' ) )  # for clamping
+        # self.model.add( keras.layers.ReLU( max_value = 1.0 ) ) # for clamping
         self.model.summary()
     
     def train_model(self):
