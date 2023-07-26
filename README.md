@@ -1,6 +1,4 @@
-# Synthesizing Local Mimic Programs for Opaque Models - Code & Data Appendix
-
-This is the accompaning repository for the paper **Synthesizing Local Mimic Programs for Opaque Models** submitted to AAAI 23.
+# Synthesizing Mimic Programs - Code & Data Appendix
 
 
 ## Set Up
@@ -24,6 +22,8 @@ sudo chmod +x cvc5-Linux
 For other systems, go to the [Downloads](https://cvc5.github.io/downloads.html)
 and follow installation instructions.
 
+Inside the python scripts, cvc5 is called from an installed binary. To use them, put the path to your binary in the `config.yml` file.
+
 
 ## Project Structure
 
@@ -42,8 +42,8 @@ used to run the accuracy and recall experiments.
     - *pima_global_recall_bootsrap.csv*:
     - *pima_global_recall_quantiles.csv*:
     - *pima_indians_diabetes.csv*: Contains the Pima dataset
-    - *pima_runtime.csv*: Contains the data corresponding to runtime experiments in the Pima benchmark. --> ToDo: mix this runtimebootstrap.
-- **images/**: Contains the graphs generated.
+    - *pima_runtime.csv*: Contains the data corresponding to runtime experiments in the Pima benchmark.
+- **images/**: Graphs generated go to this folder.
 - **models/**: Contains the trained Neural Networks used as opaque models in our evaluation as Keras ready-to-load models.
 - **smtfiles/**: Contains the relevant SMT-LIBv2 files. --> To Do: pass them to smt extension
     - *mnist_constraints.smt2*: 
@@ -101,11 +101,11 @@ python3 mnist_runtime.py
 ### **Pima**
 First of all, a model needs to be trained
 ```
-python3 pima_Pima.py
+python3 pima_NN.py
 ```
 
 This will save the corresponding model in the *models/* folder, 
-and generate the constraints file file, 
+and generate the constraints file in *smtfiles/pima_constraints.smt2*, 
 containing the examples for our Programming-by-example method, 
 enconded as constraints for the synthesis step later.
 In the case of Pima, the constraints are sorted by acending *confidence*, 
@@ -123,11 +123,3 @@ For the runtime benchmark:
 ```
 python3 pima_runtime.py
 ```
-
-
-
-
-
-
-# Todolist for getting presentable repository
-- Make a script to generate MNIST grammar

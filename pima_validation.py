@@ -1,7 +1,8 @@
 from functools import total_ordering
-import time, os, hy
+import time, os, hy, yaml
 import numpy as np, pandas as pd
 import random, pickle
+import subprocess, io
 from tqdm import tqdm
 from pima_NN import TrainingInstance
 from matplotlib import pyplot as plt
@@ -108,6 +109,9 @@ def clean_mimic_program(mimic_smtfile):
     with open(mimic_smtfile, 'r') as g:
         raw = g.readlines()[1]
     raw = remove_divisions(raw)
+    # the following helps the code on finding first, second and third parenthesis
+    raw = raw.replace('true', '(true)')
+    raw = raw.replace('false', '(false)')
     let_values = []
     variables = 1
     found = True
@@ -133,23 +137,30 @@ def clean_mimic_program(mimic_smtfile):
         last_portion = last_portion.replace(f"_let_{i+1} ",f"{let_values[i]} ")
         last_portion = last_portion.replace(f"_let_{i+1})",f"{let_values[i]})")
     ite = last_portion.find('ite')
-    # print(f"Last portions: {last_portion[ite:]} \n")
-    tree_first = get_first_correct_parenthesis(last_portion[ite:])
-    tree_second = get_second_correct_parenthesis(last_portion[ite:])
-    tree_third = get_third_correct_parenthesis(last_portion[ite:])
-    # print(f"first: {tree_first}\n second: {tree_second}\n, third: {tree_third}\n")
-    final = f"(ite {tree_first} {tree_second} {tree_third})"
-    with open('diagnostic_mimic_program.txt', 'w') as fp:
-        fp.write(final)
+    if ite != -1:
+        # print(f"Last portions: {last_portion[ite:]} \n")
+        tree_first = get_first_correct_parenthesis(last_portion[ite:])
+        tree_second = get_second_correct_parenthesis(last_portion[ite:])
+        tree_third = get_third_correct_parenthesis(last_portion[ite:])
+        # print(f"first: {tree_first}\n second: {tree_second}\n, third: {tree_third}\n")
+        final = f"(ite {tree_first} {tree_second} {tree_third})"
+    else:
+        # in this case, it is a single bool
+        final = f"(ite {last_portion[last_portion.find('Bool')+4:-2]} true false)"
 
-def classify_patient(values):
-    file = open("diagnostic_mimic_program.txt", "r")
-    data = file.read()
-    file.close()
-    data = data.replace('true', 'True')
-    data = data.replace('false', 'False')
+    final = final.replace('true', 'True')
+    final = final.replace('false', 'False')
+    final = final.replace("ite", "if")
 
-    data = data.replace("ite", "if")
+    return final
+    # with open('diagnostic_mimic_program.txt', 'w') as fp:
+    #     fp.write(final)
+
+def classify_patient(values, mimic_program):
+    '''
+    values: array with values for pregnancies, glucose, bp, etc.
+    program: mimic program, already 'cleaned', and thus readable by hy
+    '''
 
     args = ""
     var_names = [ 
@@ -166,7 +177,7 @@ def classify_patient(values):
             args += "(setv {} {})".format(var, values[i])
             
 
-    prog = args + data
+    prog = args + mimic_program
     expr = hy.read(f"((fn [] {prog}))")
 #     print(expr)
     return hy.eval(expr)
@@ -188,15 +199,27 @@ def createFile(constraints_ind, inputfile, outputfile, grammar_type):
     f.write("(check-synth)")
     f.close()
 
+    with open('config.yml', 'r') as cf:
+        cvc5path = yaml.load(cf, Loader=yaml.FullLoader)['cvc5']
+
     start_time = time.time()
-    os.system(f'../cvc5-Linux --lang=sygus2 {inputfile} >{outputfile}')
+    with open(outputfile, 'w') as foo:
+        # p = subprocess.Popen(f'{cvc5path} --lang=sygus2 {inputfile} >{outputfile}', shell=True)
+        p = subprocess.Popen([f'{cvc5path}', '--lang=sygus2', inputfile], stdout=foo, shell=False)
+        try:
+            p.wait(10)
+        except:
+            p.kill()
+            print("Had to kill one\n")
+
+        # os.system(f'{cvc5path} --lang=sygus2 {inputfile} >{outputfile}')
 
     runTime = time.time() - start_time
     
     return runTime  
 
 
-def mimic_program_global_accuracy(T):
+def mimic_program_global_accuracy(T, mimic_program):
 
     total_predictions = 0
     right_predictions_acc = 0
@@ -204,7 +227,7 @@ def mimic_program_global_accuracy(T):
     buffer = min(T.test_xs.index)
     for i in T.outcomes_df.index:
         values = list(T.test_xs.loc[i+buffer,:])
-        program_outcome = classify_patient(values)
+        program_outcome = classify_patient(values, mimic_program)
         ground_truth = T.test_ys.loc[i+buffer, 'Outcome'] > 0.5
         model_outcome = T.outcomes_df.loc[i,'prediction']
         if program_outcome == ground_truth:
@@ -234,9 +257,12 @@ def main():
     ### UNDER CONSTRUCTION
     T = TrainingInstance()
     T.data_preparation()
-    with open('models/pima_model.pkl', 'br') as fp:
+    # model_to_test = 'models/pima_model.pkl'
+    model_to_test = 'models/pima_model_2023-07-17T20:28:55.pkl'
+    with open(model_to_test, 'br') as fp:
         T.model = pickle.load(fp)
     T.make_constraints()
+    T.computeMagicNumbers()
     inputfile = 'pima_aux_input.smt2'
     outputfile = 'pima_aux_output.smt2'
     constraints = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140]
@@ -246,13 +272,13 @@ def main():
     grammar_type = "bootstrap"
 
     for grammar_type in {"bootstrap", "simple"}:
-        grammar_type = "bootstrap"
+        # grammar_type = "bootstrap"
         global_accuracy = pd.DataFrame(columns=constraints)
         global_recall = pd.DataFrame(columns=constraints)
         for num_constraints in tqdm(constraints):
             createFile(list(range(num_constraints)), inputfile, outputfile, grammar_type)
-            clean_mimic_program(outputfile)
-            acc, rec = mimic_program_global_accuracy(T)
+            mimic_program = clean_mimic_program(outputfile)
+            acc, rec = mimic_program_global_accuracy(T, mimic_program)
             global_accuracy.loc[0,num_constraints] = acc
             global_recall.loc[0,num_constraints] = rec
             global_accuracy.to_csv(f'data/pima_global_accuracy_{grammar_type}.csv')

@@ -12,7 +12,7 @@ import graphviz, pickle
 
 
 """
-Class to train and evaluate MNIST dataset. Saves model.
+Class to train and evaluate Pima dataset. Saves model.
 Saves generated constraints.
 """
 
@@ -35,6 +35,14 @@ class TrainingInstance:
         # (self.x_train, self.y_train), (self.x_test, self.y_test) = keras.datasets.mnist.load_data()
         self.timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
         self.save_model = f"models/pima_model_{self.timestamp}.h5"
+    
+    def data_normalization(self):
+        for col in self.features[:-1]:
+            q1 = self.data[col].quantile(0.25)
+            q3 = self.data[col].quantile(0.75)
+            qmin = self.data[col].min()
+            self.data[col] = (self.data[col]- qmin)/(q3-q1)
+        
 
     def data_preparation(self):
         for col in self.data:
@@ -49,13 +57,11 @@ class TrainingInstance:
         self.data = self.data.sample( frac = 1 , random_state=42).reset_index( drop = True )
 
         # normalize data (for cosine distance calculation)
-        # for col in [ 'Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age' ]:
-
-        outcome_col = self.data['Outcome']
-        print(outcome_col)
-        self.data = pd.DataFrame(preprocessing.normalize(self.data.loc[:,'Pregnancies':'Age']), columns = [ 'Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age' ])
-        self.data['Outcome'] = outcome_col
-        print(self.data)
+        self.data_normalization()
+        # self.data['Outcome'] = outcome_col
+        self.data.to_csv('data/normalized_pima.csv')
+        # print("\n **********\nSelf data: \n*******\n")
+        # print(self.data)
 
         xs = self.data.copy()
         ys = xs.pop( 'Outcome' ).to_frame( name = 'Outcome' )
@@ -77,8 +83,8 @@ class TrainingInstance:
         self.model.add( keras.layers.Dense( 9, input_dim=9, kernel_initializer='normal', activation='relu' ) )
         self.model.add( keras.layers.Dense( 20, activation='relu' ) )
         self.model.add( keras.layers.Dense( 20, activation='relu' ) )
-        self.model.add( keras.layers.Dense( 1, activation='relu' ) )
-        self.model.add( keras.layers.ReLU( max_value = 1.0 ) ) # for clamping
+        self.model.add( keras.layers.Dense( 1, activation='sigmoid' ) )  # for clamping
+        # self.model.add( keras.layers.ReLU( max_value = 1.0 ) ) # for clamping
         self.model.summary()
     
     def train_model(self):
@@ -101,7 +107,7 @@ class TrainingInstance:
         zeroCounter = 0
         
         outcomes = self.model.predict([self.test_xs.values]).reshape(len(self.test_xs.values),)
-        print(outcomes)
+        # print(outcomes)
         outcomes_df = pd.DataFrame(columns=['outcome', 'confidence', 'prediction', 'cos_dist'])
         outcomes_df.outcome = outcomes
         outcomes_df.prediction = outcomes_df.outcome > 0.5
@@ -117,18 +123,17 @@ class TrainingInstance:
         temp = np.array([self.test_xs.values[index]])
         # print(temp)
         # print(self.test_xs.values[1])
-        outcomes_df['cos_dist'][index] = 1
+        outcomes_df.loc[index, 'cos_dist'] = 1
         for i in outcomes_df.index:
             if i != index:
                 point = np.array([self.test_xs.values[i]])
                 # outcome = outcomes_df.loc[i,'prediction']
-                outcomes_df['cos_dist'][i] = cosine_similarity(point, temp).flatten()[0]
-        
+                outcomes_df.loc[i,'cos_dist'] = cosine_similarity(point, temp).flatten()[0]
 
-        print(outcomes_df)
+        # print(outcomes_df)
         outcomes_df = outcomes_df.sort_values(by = 'cos_dist', ascending = False)
 
-        print(outcomes_df[0:20])
+        # print(outcomes_df[0:20])
 
         for i in outcomes_df.index:
             point = self.test_xs.values[i]
@@ -179,7 +184,7 @@ class TrainingInstance:
             q3 = self.data[col].quantile(0.75)
             simple_numbers[i] = [q1, q2, q3]
         
-        with open('smtfiles/pima_grammar_template.txt', 'r') as fp:
+        with open('smtfiles/pima_grammar_template.smt2', 'r') as fp:
             grammar_template =fp.read()
 
         codenames = {

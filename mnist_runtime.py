@@ -1,4 +1,4 @@
-import time, os
+import time, os, yaml
 import pandas as pd
 import random
 from tqdm import tqdm
@@ -24,8 +24,11 @@ def createFile(constraints_ind):
     f.write("(check-synth)")
     f.close()
 
+    with open('config.yml', 'r') as cf:
+        cvc5path = yaml.load(cf, Loader=yaml.FullLoader)['cvc5']
+
     start_time = time.time()
-    os.system(f'../cvc5-Linux --lang=sygus2 {auxfile1} >{auxfile2}')
+    os.system(f'{cvc5path} --lang=sygus2 {auxfile1} >{auxfile2}')
     os.remove(auxfile1)
     os.remove(auxfile2)
 

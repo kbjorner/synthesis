@@ -6,6 +6,13 @@ from matplotlib import rc
 
 plotcolor = '#DC3220'
 fillcolor = '#DC9F9F'
+pretty = True  # Turn to True if you have LaTeX installed
+
+fontsize = 16
+if pretty:
+    plt.rcParams.update({'font.size': fontsize})
+    rc('font', **{'family': 'serif', 'serif': ['Times']})
+    rc('text', usetex=True)
 
 def make_random_dataset():
     iterate = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
@@ -16,7 +23,21 @@ def make_random_dataset():
     return runtime_data
 
 
-def make_runtime_graph(df1, df2, benchmark, plotcolor, fillcolor):
+def count_grammar_nodes():
+    with open('smtfiles/pima_grammar_bootstrap.smt2', 'r') as fp:
+        data = fp.readlines()
+        number_of_nodes = 0
+        for line in data:
+            if line.count('Real') == 1:
+                line = line.replace('(', ' ')
+                line = line.replace(')', ' ')
+                for i in line.split(' '):
+                    if i.replace('.','').isnumeric():
+                        number_of_nodes += 1
+    return number_of_nodes
+
+
+def make_runtime_graph(df1, df2, benchmark, whatplot, plotcolor, fillcolor):
     # iterate = np.array(df.columns.astype('int'))
     iterate = df1.columns
     means = []
@@ -52,10 +73,9 @@ def make_runtime_graph(df1, df2, benchmark, plotcolor, fillcolor):
 
     
     iterate = np.array(df1.columns.astype('int'))
-    fontsize = 16
-    plt.rcParams.update({'font.size': fontsize})
-    rc('font', **{'family': 'serif', 'serif': ['Times']})
-    rc('text', usetex=True)
+    horizcolor = '#FF6600'
+
+    
 
     fig, ax = plt.subplots()
 
@@ -64,15 +84,24 @@ def make_runtime_graph(df1, df2, benchmark, plotcolor, fillcolor):
     if benchmark == "Pima":
         plt.fill_between(iterate, lowerbound2, upperbound2, color = '#009F9F', alpha = 0.5)
         plt.plot(iterate, means2, color = '#008080', marker = 'o', markersize=4)
+        if whatplot != 'runtime':
+            number_of_nodes = count_grammar_nodes()
+            plt.axhline(number_of_nodes, color = horizcolor, linestyle = '--')
     if benchmark == "Pima":
-        plt.legend(['Mean Boostrap', 'Mean Simple', 'Mean $\pm$ stdev','Mean $\pm$ stdev'])
+        if whatplot != 'runtime':
+            plt.legend(['Mean Boostrap', 'Mean Simple','Size reference', 'Mean $\pm$ stdev','Mean $\pm$ stdev',])
+        else:
+            plt.legend(['Mean Boostrap', 'Mean Simple', 'Mean $\pm$ stdev','Mean $\pm$ stdev'])
     else:
         plt.legend(['Mean', 'Mean $\pm$ stdev'])
 
     for spine in ['right', 'top']:
         ax.spines[spine].set_visible(False)
     plt.xlabel('Number of Examples', size = fontsize)
-    plt.ylabel('Runtime (seconds)', size=fontsize)
+    if whatplot == "runtime":
+        plt.ylabel('Runtime (seconds)', size=fontsize)
+    else:
+        plt.ylabel('Tree size (nodes)', size=fontsize)
     # plt.title(f'Mimic Program Synthesis on {benchmark}', size = fontsize + 2)
     
     yspaced = np.linspace(0,maxtime,5)
@@ -88,7 +117,7 @@ def make_runtime_graph(df1, df2, benchmark, plotcolor, fillcolor):
     if benchmark == "MNIST":
         ax.set_aspect(aspect=0.75)
     # plt.margins(x = 0)
-    plt.savefig(f'images/{benchmark}_runtime.pdf', bbox_inches='tight')
+    plt.savefig(f'images/{benchmark}_{whatplot}.pdf', bbox_inches='tight')
     # plt.show()
 
 def make_pima_global_accuracy_graph(grammar_type="bootstrap"):
@@ -102,10 +131,8 @@ def make_pima_global_accuracy_graph(grammar_type="bootstrap"):
     plotcolor = '#DC3220'
     horizcolor = '#FF6600'
 
-    # hliney = '' # enter path to this value, replace line below with this.
     hliney = 0.78
 
-#     define vars
     x = []
     y = []
     z = []
@@ -171,8 +198,49 @@ def readCSVfile_mnist_accuracy(csvfile):
 #     print(f"means: {means}; upperbound: {upperbound}")
     return df, head, rows, means, lowbound, upbound
 
-
 def mnist_accuracy_plot():
+    plotcolor = '#DC3220'
+    fillbetweencolor = '#DC9F9F'
+    horizcolor = '#FF6600'
+
+    # hliney = '' # enter path to this value, replace line below with this.
+    hliney = 99
+    df1, head1, rows1, means1, lowbound1, upbound1 = readCSVfile_mnist_accuracy('data/mnist_global_accuracy.csv')
+    df2, head2, rows2, means2, lowbound2, upbound2 = readCSVfile_mnist_accuracy('data/mnist_global_recall.csv')
+#     define vars
+    x = []
+    for n in head1:
+        x.append(int(n))
+
+    fig, ax = plt.subplots()
+    
+    
+    
+    ax.fill_between(x, lowbound1, upbound1, color = fillbetweencolor, alpha = 0.7)
+    ax.plot(x, means1, color = plotcolor, marker = 'o', markersize=4)
+    ax.fill_between(x, lowbound2, upbound2, color = '#009F9F', alpha = 0.3)
+    ax.plot(x, means2, color = '#008080', marker = 'o', markersize=4)
+    ax.axhline(hliney, color = horizcolor, linestyle = '--')
+        
+    # ax.set_ylim(80, 100)
+    
+    
+    
+    
+    for spine in ['right', 'top']:
+        ax.spines[spine].set_visible(False)
+    
+    fig.legend(['Mimic Program Accuracy','Mimic Program Recall', 'Opaque Model Accuracy'], loc=[0.4,0.2])
+#     plt.title('Comparative MNIST Accuracy: Opaque Model vs. Mimic Program')
+    plt.xlabel('Number of Examples')
+    plt.ylabel('Accuracy (\%)')
+#     plt.yticks([0.0, 0.5, 1.0],['', '0.5', '1.0']) # can be commented out to remov whtie space? if desired
+    
+    plt.savefig('images/mnist_accuracy_vs_recall.pdf')
+    # plt.show()
+
+
+def mnist_accuracy_plot_cut():
     
     plotcolor = '#DC3220'
     fillbetweencolor = '#DC9F9F'
@@ -243,7 +311,15 @@ def pima_runtime_graph():
     maxcol = pd.read_csv('data/pima_runtime_bootstrap.csv').shape[1]
     df1 = pd.read_csv('data/pima_runtime_bootstrap.csv', usecols=[i for i in range(1,maxcol)])
     df2 = pd.read_csv('data/pima_runtime_simple.csv', usecols=[i for i in range(1,maxcol)])
-    make_runtime_graph(df1, df2, "Pima", plotcolor,fillcolor)
+    make_runtime_graph(df1, df2, "Pima", "runtime", plotcolor,fillcolor)
+
+
+def pima_treestats_graph():
+    plt.clf()
+    maxcol = pd.read_csv('data/pima_treestats_bootstrap.csv').shape[1]
+    df1 = pd.read_csv('data/pima_treestats_bootstrap.csv', usecols=[i for i in range(1,maxcol)])
+    df2 = pd.read_csv('data/pima_treestats_simple.csv', usecols=[i for i in range(1,maxcol)])
+    make_runtime_graph(df1, df2, "Pima", "treestats", plotcolor,fillcolor)
 
 
 def mnist_runtime_graph():
@@ -251,7 +327,7 @@ def mnist_runtime_graph():
     df = make_random_dataset()
     maxcol = pd.read_csv('data/mnist_runtime.csv').shape[1]
     df = pd.read_csv('data/mnist_runtime.csv', usecols=[i for i in range(1,maxcol)])    
-    make_runtime_graph(df,df, "MNIST", plotcolor=plotcolor, fillcolor=fillcolor)
+    make_runtime_graph(df,df, "MNIST", "runtime", plotcolor=plotcolor, fillcolor=fillcolor)
     
 
 def main():

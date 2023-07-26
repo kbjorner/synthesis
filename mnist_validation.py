@@ -1,5 +1,5 @@
 from functools import total_ordering
-import time, os, hy
+import time, os, hy, yaml
 import numpy as np, pandas as pd
 import random, pickle
 from tqdm import tqdm
@@ -119,7 +119,11 @@ def clean_mimic_program(mimic_smtfile):
             let_values.append(get_first_correct_parenthesis(raw[startind:]))
             variables += 1
             found =True
-    last_portion = raw[raw.find(let_values[-1])+len(let_values[-1]):]
+    if len(let_values) > 0:
+        last_portion = raw[raw.find(let_values[-1])+len(let_values[-1]):]
+    else:
+        last_portion = raw
+        
     for i in range(len(let_values)):
         for j in range(len(let_values)):
             let_values[j] = let_values[j].replace(f"_let_{i+1} ",f"{let_values[i]} ")
@@ -130,10 +134,15 @@ def clean_mimic_program(mimic_smtfile):
         last_portion = last_portion.replace(f"_let_{i+1} ",f"{let_values[i]} ")
         last_portion = last_portion.replace(f"_let_{i+1})",f"{let_values[i]})")
     ite = last_portion.find('ite')
-    tree_first = get_first_correct_parenthesis(last_portion[ite:])
-    tree_second = get_second_correct_parenthesis(last_portion[ite:])
-    tree_third = get_third_correct_parenthesis(last_portion[ite:])
-    final = f"(ite {tree_first} {tree_second} {tree_third})"
+    if ite != -1:
+        tree_first = get_first_correct_parenthesis(last_portion[ite:])
+        tree_second = get_second_correct_parenthesis(last_portion[ite:])
+        tree_third = get_third_correct_parenthesis(last_portion[ite:])
+        final = f"(ite {tree_first} {tree_second} {tree_third})"
+    else:
+        tree_first = get_first_correct_parenthesis(last_portion)
+        final = f"(ite True {tree_first} {tree_first})"
+
     with open('mnist_mimic_program.txt', 'w') as fp:
         fp.write(final)
 
@@ -174,8 +183,10 @@ def createFile(constraints_ind, tempfile):
     f.write("(check-synth)")
     f.close()
 
+    with open('config.yml', 'r') as cf:
+        cvc5path = yaml.load(cf, Loader=yaml.FullLoader)['cvc5']
     start_time = time.time()
-    os.system(f'../cvc5-Linux --lang=sygus2 {tempfile} >mnist_mimic.smt2')
+    os.system(f'{cvc5path} --lang=sygus2 {tempfile} >mnist_mimic.smt2')
 
     runTime = time.time() - start_time
     
