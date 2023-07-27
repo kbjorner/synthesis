@@ -1,4 +1,4 @@
-# Synthesizing Mimic Programs - Code & Data Appendix
+# Formal XAI via Syntax-Guided Synthesis - Code & Data Appendix
 
 
 ## Set Up
